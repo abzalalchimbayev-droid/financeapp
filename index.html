@@ -2,907 +2,1632 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Мой бюджет</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Jinau</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪙</text></svg>">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
-  --bg:#ffffff;--bg2:#f5f5f7;--bg3:#e8e8ed;
-  --txt:#1a1a1a;--txt2:#6b6b6b;--brd:rgba(0,0,0,0.1);
-  --g:#3B6D11;--gb:#EAF3DE;--r:#A32D2D;--rb:#FCEBEB;
-  --b:#185FA5;--bb:#E6F1FB;--a:#854F0B;--ab:#FAEEDA;
-  --p:#534AB7;--pb:#EEEDFE;--gy:#5F5E5A;--gyb:#F1EFE8;
-  --rad:14px;
+  /* JINAU PALETTE — teal/gold inspired by icon */
+  --bg:#f0f7f7;
+  --card:#ffffff;
+  --txt:#1a2e2e;
+  --txt2:#5a7a7a;
+  --brd:#d0e8e8;
+  --teal:#0e7a78;
+  --teal2:#0a5e5c;
+  --teal-light:#e0f4f3;
+  --gold:#c8960c;
+  --gold2:#a87800;
+  --gold-light:#fdf4dc;
+  --g:#1a8c5a;--gb:#e0f5ec;--gd:#0f6b42;
+  --r:#c0392b;--rb:#fdecea;
+  --p:#0e7a78;--pb:#e0f4f3;
+  --a:#c8960c;--ab:#fdf4dc;
+  --b:#1565a8;--bb:#e3eefb;
+  --gy:#5a7a7a;--gyb:#eaf2f2;
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bot:env(safe-area-inset-bottom,0px);
 }
-@media(prefers-color-scheme:dark){
-  :root{--bg:#1c1c1e;--bg2:#2c2c2e;--bg3:#3a3a3c;--txt:#f2f2f7;--txt2:#adadaf;--brd:rgba(255,255,255,0.1)}
-}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--txt);min-height:100vh}
-.screen{background:var(--bg);display:flex;flex-direction:column;max-width:480px;margin:0 auto;width:100%;min-height:100vh;position:relative;overflow:hidden}
-.tab{overflow-y:auto;padding:0 16px 100px;display:none;height:calc(100vh - 60px);-webkit-overflow-scrolling:touch}
+html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',sans-serif;color:var(--txt);overflow:hidden}
+.app{display:flex;flex-direction:column;height:100vh;max-width:480px;margin:0 auto;position:relative;background:var(--bg)}
+
+/* ── LANG SCREEN ── */
+.lang-screen{position:fixed;inset:0;max-width:480px;left:50%;transform:translateX(-50%);background:var(--card);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 28px}
+.lang-screen.hidden{display:none}
+.lang-logo{display:flex;align-items:center;justify-content:center;margin-bottom:20px}
+.lang-appname{font-size:32px;font-weight:800;color:var(--teal);letter-spacing:-.5px;margin-bottom:4px}
+.lang-tagline{font-size:14px;color:var(--txt2);text-align:center;margin-bottom:44px}
+.lang-btn{width:100%;padding:18px 20px;border-radius:16px;border:2px solid var(--brd);background:var(--bg);font-size:17px;font-weight:700;color:var(--txt);cursor:pointer;margin-bottom:12px;display:flex;align-items:center;gap:14px;transition:all .15s}
+.lang-btn.selected{border-color:var(--gold);background:var(--gold-light);color:var(--gold2);box-shadow:0 2px 12px rgba(200,150,12,0.2)}
+.lang-flag{font-size:30px}
+.lang-info{text-align:left}
+.lang-name{font-size:16px;font-weight:700}
+.lang-native{font-size:12px;color:var(--txt2);margin-top:2px}
+.lang-start{width:100%;padding:17px;border-radius:16px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#fff;font-size:18px;font-weight:800;border:none;cursor:pointer;margin-top:14px;box-shadow:0 4px 16px rgba(200,150,12,0.4)}
+
+/* ── TABS ── */
+.tab{position:absolute;inset:0;bottom:60px;overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;padding-bottom:20px}
 .tab.active{display:block}
-.hdr{padding:48px 16px 0;background:var(--bg);position:sticky;top:0;z-index:5;padding-bottom:4px}
-.htitle{font-size:26px;font-weight:700;color:var(--txt)}
-.hdate{font-size:13px;color:var(--txt2);margin-bottom:12px;margin-top:3px}
-.card{background:var(--bg2);border-radius:var(--rad);padding:16px;border:0.5px solid var(--brd);margin-bottom:10px}
-.card2{background:var(--bg);border-radius:var(--rad);padding:16px;border:0.5px solid var(--brd);margin-bottom:10px}
-.strow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:12px}
-.stc{background:var(--bg2);border-radius:12px;padding:14px;border:0.5px solid var(--brd)}
-.stc .lbl{font-size:12px;color:var(--txt2);margin-bottom:4px}
-.stc .val{font-size:18px;font-weight:700}
-.sec{font-size:17px;font-weight:700;color:var(--txt);margin:18px 0 10px}
-.txr{display:flex;align-items:center;gap:12px;background:var(--bg2);border-radius:12px;padding:12px 14px;border:0.5px solid var(--brd);margin-bottom:8px}
+
+/* ── NAV ── */
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:rgba(255,255,255,0.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--brd);display:flex;padding-bottom:var(--safe-bot);z-index:90;height:60px}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:none;background:none;cursor:pointer;padding:6px 2px}
+.nb .ni{font-size:20px;line-height:1}
+.nb .nl{font-size:9px;color:var(--txt2);font-weight:500}
+.nb.active .nl{color:var(--teal);font-weight:800}
+.nb.active .ni{filter:drop-shadow(0 0 4px rgba(14,122,120,.4))}
+
+/* ── HEADER ── */
+.hdr{padding:calc(var(--safe-top) + 14px) 16px 10px;background:var(--bg);position:sticky;top:0;z-index:10}
+.htop{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
+.htitle{font-size:26px;font-weight:800;letter-spacing:-.5px;color:var(--teal)}
+.hdate{font-size:13px;color:var(--txt2)}
+
+/* ── APP HEADER (home) ── */
+.home-hdr{padding:calc(var(--safe-top)+14px) 16px 10px;background:var(--bg);position:sticky;top:0;z-index:10;display:flex;justify-content:space-between;align-items:center}
+.jinau-logo{display:flex;align-items:center;gap:10px}
+.jinau-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--teal),var(--teal2));display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 8px rgba(14,122,120,.3)}
+.jinau-name{font-size:22px;font-weight:800;color:var(--teal);letter-spacing:-.3px}
+
+/* ── CARDS ── */
+.card{background:var(--card);border-radius:18px;padding:16px;margin:0 16px 12px;box-shadow:0 2px 8px rgba(14,122,120,0.08);border:1px solid var(--brd)}
+.card-hero{background:linear-gradient(145deg,var(--teal),var(--teal2));border-radius:20px;padding:22px;margin:0 16px 12px;box-shadow:0 6px 20px rgba(14,122,120,0.35)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 16px 12px}
+.mini-card{background:var(--card);border-radius:14px;padding:12px;box-shadow:0 2px 6px rgba(14,122,120,0.07);border:1px solid var(--brd)}
+.mini-card .lbl{font-size:11px;color:var(--txt2);margin-bottom:3px;font-weight:500}
+.mini-card .val{font-size:16px;font-weight:800;color:var(--txt)}
+.sec{font-size:18px;font-weight:800;color:var(--teal);padding:4px 16px 10px;letter-spacing:-.2px}
+
+/* ── GOLD ACCENT CARD ── */
+.gold-card{background:linear-gradient(145deg,var(--gold-light),#fff8e6);border:1px solid #e8c94a;border-radius:18px;padding:16px;margin:0 16px 12px}
+
+/* ── TX ITEMS ── */
+.txr{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--brd)}
+.txr:last-child{border-bottom:none}
 .ico{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
 .txi{flex:1;min-width:0}
-.txn{font-size:15px;font-weight:600;color:var(--txt)}
-.txc{font-size:12px;color:var(--txt2)}
-.txa{font-size:15px;font-weight:700;flex-shrink:0}
-.pill{display:inline-block;padding:3px 12px;border-radius:20px;font-size:12px;font-weight:600}
-.pg{background:var(--bg3);border-radius:6px;height:8px;overflow:hidden;margin-top:6px}
-.pb{height:100%;border-radius:6px;transition:width .5s}
-.fab{position:fixed;bottom:80px;right:20px;width:56px;height:56px;border-radius:50%;background:var(--p);border:none;color:#fff;font-size:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:100;box-shadow:0 4px 16px rgba(83,74,183,0.4)}
-.bnav{display:flex;background:var(--bg);border-top:0.5px solid var(--brd);padding:8px 0 16px;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;z-index:99}
-.nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;cursor:pointer;padding:4px 2px}
-.ni{font-size:20px}
-.nl{font-size:10px;color:var(--txt2);font-weight:500}
-.nb.active .nl{color:var(--p);font-weight:700}
-.mo-wrap{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;align-items:flex-end;justify-content:center;z-index:200;max-width:480px;left:50%;transform:translateX(-50%)}
-.mo-wrap.open{display:flex}
-.md{width:100%;background:var(--bg);border-radius:24px 24px 0 0;padding:20px 20px 32px;max-height:90vh;overflow-y:auto}
-.mdtitle{font-size:18px;font-weight:700;color:var(--txt);margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
-.mcls{width:30px;height:30px;border-radius:50%;background:var(--bg2);border:none;cursor:pointer;font-size:16px;color:var(--txt2);display:flex;align-items:center;justify-content:center}
-.fl{font-size:13px;color:var(--txt2);margin-bottom:6px;font-weight:500}
-.fg{margin-bottom:12px}
-.fi{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--brd);background:var(--bg2);font-size:16px;color:var(--txt);outline:none}
-.fi:focus{border-color:var(--p)}
-select.fi{-webkit-appearance:none;appearance:none}
-.tbg{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-.tb{padding:7px 16px;border-radius:20px;border:1px solid var(--brd);background:var(--bg2);font-size:13px;color:var(--txt2);cursor:pointer;font-weight:500}
-.tb.ai{background:var(--gb);color:var(--g);border-color:transparent}
-.tb.ae{background:var(--rb);color:var(--r);border-color:transparent}
-.tb.ap{background:var(--pb);color:var(--p);border-color:transparent}
-.tb.ab2{background:var(--bb);color:var(--b);border-color:transparent}
-.tb.aa{background:var(--ab);color:var(--a);border-color:transparent}
-.sb2{width:100%;padding:14px;border-radius:14px;background:var(--p);color:#fff;font-size:17px;font-weight:700;border:none;cursor:pointer;margin-top:8px}
-.se{font-size:13px;color:var(--b);background:none;border:none;cursor:pointer;padding:4px 8px;font-weight:600}
-.bal{background:var(--p);border-radius:var(--rad);padding:22px;margin-bottom:12px}
-.brow{display:flex;margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.2)}
-.bi{flex:1}
-.bi .l{font-size:11px;color:rgba(255,255,255,0.7);margin-bottom:2px}
-.bi .v{font-size:13px;font-weight:700;color:#fff}
-.inv-chip{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;margin-top:3px}
-.pend-row{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:12px;border:1px solid var(--brd);margin-bottom:8px;background:var(--bg2)}
-.pend-row.confirmed{background:var(--gb);border-color:transparent}
-.confirm-btn{padding:6px 12px;border-radius:20px;background:var(--bg);border:1px solid var(--brd);font-size:12px;font-weight:600;color:var(--txt2);cursor:pointer;flex-shrink:0;white-space:nowrap}
-.confirmed .confirm-btn{background:rgba(59,109,17,0.15);color:var(--g);border-color:transparent}
-canvas{display:block;width:100%!important}
-.period-row{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px}
-.period-btn{padding:6px 16px;border-radius:20px;border:1px solid var(--brd);background:var(--bg2);font-size:13px;color:var(--txt2);cursor:pointer;white-space:nowrap;font-weight:500;flex-shrink:0}
-.period-btn.active{background:var(--p);color:#fff;border-color:transparent}
-.hist-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--brd)}
-.hist-row:last-child{border-bottom:none}
-.trend-up{color:var(--g);font-size:12px;font-weight:600}
-.trend-dn{color:var(--r);font-size:12px;font-weight:600}
-.info-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:0.5px solid var(--brd)}
-.info-row:last-child{border-bottom:none}
-.info-lbl{font-size:13px;color:var(--txt2)}
-.info-val{font-size:14px;font-weight:700;color:var(--txt)}
+.txn{font-size:14px;font-weight:700;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.txc{font-size:12px;color:var(--txt2);margin-top:1px}
+.txa{font-size:14px;font-weight:800;flex-shrink:0}
+.pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700}
+.pg{background:var(--brd);border-radius:6px;height:7px;overflow:hidden;margin-top:8px}
+.pb{height:100%;border-radius:6px;transition:width .5s ease}
+
+/* ── FAB ── */
+
+
+/* ── MODALS ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;display:none;align-items:flex-end;justify-content:center;max-width:480px;left:50%;transform:translateX(-50%)}
+.overlay.open{display:flex}
+.sheet{width:100%;background:var(--card);border-radius:22px 22px 0 0;padding:0 0 calc(var(--safe-bot)+16px);max-height:88vh;display:flex;flex-direction:column}
+.sheet-handle{width:40px;height:4px;background:var(--brd);border-radius:2px;margin:10px auto 14px}
+.sheet-title{font-size:18px;font-weight:800;padding:0 20px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--brd);color:var(--teal)}
+.sheet-body{overflow-y:auto;padding:16px 20px;flex:1}
+.mcls{width:28px;height:28px;border-radius:50%;background:var(--bg);border:none;font-size:16px;color:var(--txt2);cursor:pointer}
+
+/* ── FORM ── */
+.fg{margin-bottom:14px}
+.fl{font-size:13px;color:var(--teal);font-weight:700;margin-bottom:6px}
+.fi{width:100%;padding:13px 14px;border-radius:12px;border:1.5px solid var(--brd);background:var(--bg);font-size:16px;color:var(--txt);outline:none;-webkit-appearance:none;font-family:inherit}
+.fi:focus{border-color:var(--teal);background:var(--card)}
+textarea.fi{resize:none}
+select.fi{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%230e7a78' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+.tbg{display:flex;gap:8px;flex-wrap:wrap}
+.tb{padding:8px 16px;border-radius:20px;border:1.5px solid var(--brd);background:var(--bg);font-size:13px;color:var(--txt2);cursor:pointer;font-weight:600}
+.tb.on-g{background:var(--gb);color:var(--gd);border-color:transparent}
+.tb.on-r{background:var(--rb);color:var(--r);border-color:transparent}
+.tb.on-t{background:var(--teal-light);color:var(--teal);border-color:transparent}
+.tb.on-a{background:var(--gold-light);color:var(--gold2);border-color:transparent}
+.btn-main{width:100%;padding:15px;border-radius:14px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff;font-size:17px;font-weight:800;border:none;cursor:pointer;margin-top:8px;box-shadow:0 4px 12px rgba(14,122,120,.3)}
+.btn-gold{width:100%;padding:15px;border-radius:14px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#fff;font-size:17px;font-weight:800;border:none;cursor:pointer;margin-top:8px;box-shadow:0 4px 12px rgba(200,150,12,.3)}
+.btn-del{width:100%;padding:13px;border-radius:14px;background:var(--rb);color:var(--r);font-size:15px;font-weight:700;border:1px solid var(--r);cursor:pointer;margin-top:8px}
+.edit-btn{padding:5px 12px;border-radius:20px;background:var(--teal-light);border:none;font-size:12px;font-weight:700;color:var(--teal);cursor:pointer}
+
+/* ── CALC BOX ── */
+.calc-box{background:var(--teal-light);border-radius:14px;padding:14px;margin-bottom:14px;border:1px solid var(--brd)}
+.calc-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(14,122,120,.15)}
+.calc-row:last-child{border-bottom:none}
+.calc-lbl{font-size:13px;color:var(--txt2)}
+.calc-val{font-size:14px;font-weight:800;color:var(--teal)}
+
+/* ── CONFIRM ROW ── */
+.conf-row{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;border:1px solid var(--brd);margin-bottom:8px;background:var(--bg)}
+.conf-row.confirmed{background:var(--gb);border-color:transparent}
+.conf-btn{padding:7px 12px;border-radius:20px;background:var(--card);border:1px solid var(--brd);font-size:12px;font-weight:700;color:var(--txt2);cursor:pointer;white-space:nowrap;flex-shrink:0}
+.confirmed .conf-btn{background:rgba(26,140,90,.15);color:var(--gd);border-color:transparent}
+
+/* ── DONUT ── */
+.donut-wrap{display:flex;align-items:center;gap:16px;padding:4px 0}
+.dl-item{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.dl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.dl-name{font-size:12px;color:var(--txt2);font-weight:500}
+.dl-val{font-size:14px;font-weight:800;color:var(--txt)}
+
+/* ── PERIOD / FILTER ── */
+.period-row{display:flex;gap:8px;padding:0 16px 12px;overflow-x:auto}
+.period-row::-webkit-scrollbar{display:none}
+.prbtn{padding:7px 18px;border-radius:20px;border:1.5px solid var(--brd);background:var(--card);font-size:13px;color:var(--txt2);cursor:pointer;font-weight:600;white-space:nowrap;flex-shrink:0}
+.prbtn.active{background:var(--teal);color:#fff;border-color:transparent}
+.hf-row{display:flex;gap:8px;padding:0 16px 12px;overflow-x:auto}
+.hf-row::-webkit-scrollbar{display:none}
+.hfbtn{padding:7px 14px;border-radius:20px;border:1.5px solid var(--brd);background:var(--card);font-size:13px;color:var(--txt2);cursor:pointer;font-weight:600;white-space:nowrap;flex-shrink:0}
+.hfbtn.active{background:var(--teal);color:#fff;border-color:transparent}
+
+/* ── HISTORY DATE GROUP ── */
+.date-group-hdr{font-size:12px;font-weight:700;color:var(--teal);padding:10px 16px 4px;text-transform:uppercase;letter-spacing:.5px}
+
+/* ── MONTH SELECTOR ── */
+.month-bar{display:flex;gap:8px;padding:0 16px 12px;overflow-x:auto}
+.month-bar::-webkit-scrollbar{display:none}
+.msbtn{padding:6px 14px;border-radius:20px;border:1.5px solid var(--brd);background:var(--card);font-size:12px;color:var(--txt2);cursor:pointer;font-weight:600;white-space:nowrap;flex-shrink:0}
+.msbtn.active{background:var(--gold);color:#fff;border-color:transparent}
+
+.empty{text-align:center;padding:40px 24px;color:var(--txt2);font-size:14px}
 </style>
 </head>
 <body>
-<div class="screen">
+<div class="app">
 
-<!-- HOME -->
+<!-- ══ LANG SCREEN ══ -->
+<div class="lang-screen" id="lang-screen">
+  <div class="lang-logo" style="width:96px;height:96px;border-radius:22px;background:linear-gradient(145deg,#17a8a5,#0a6e6c);display:flex;align-items:center;justify-content:center;margin-bottom:20px;box-shadow:0 6px 28px rgba(14,122,120,0.45);position:relative;overflow:hidden">
+  <svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Казахский орнамент угловые элементы -->
+    <path d="M4 4 Q12 4 12 12" stroke="#f0c040" stroke-width="2" fill="none" opacity="0.8"/>
+    <path d="M68 4 Q60 4 60 12" stroke="#f0c040" stroke-width="2" fill="none" opacity="0.8"/>
+    <path d="M4 68 Q12 68 12 60" stroke="#f0c040" stroke-width="2" fill="none" opacity="0.8"/>
+    <path d="M68 68 Q60 68 60 60" stroke="#f0c040" stroke-width="2" fill="none" opacity="0.8"/>
+    <!-- Stack of coins body -->
+    <ellipse cx="36" cy="52" rx="18" ry="5" fill="#b8860b"/>
+    <rect x="18" y="32" width="36" height="20" fill="#daa520"/>
+    <ellipse cx="36" cy="32" rx="18" ry="5" fill="#ffd700"/>
+    <!-- Coin lines -->
+    <line x1="18" y1="36" x2="54" y2="36" stroke="#b8860b" stroke-width="1.5" opacity="0.6"/>
+    <line x1="18" y1="40" x2="54" y2="40" stroke="#b8860b" stroke-width="1.5" opacity="0.6"/>
+    <line x1="18" y1="44" x2="54" y2="44" stroke="#b8860b" stroke-width="1.5" opacity="0.6"/>
+    <line x1="18" y1="48" x2="54" y2="48" stroke="#b8860b" stroke-width="1.5" opacity="0.6"/>
+    <!-- Top coin -->
+    <ellipse cx="36" cy="22" rx="15" ry="13" fill="#ffd700"/>
+    <ellipse cx="36" cy="22" rx="13" ry="11" fill="#ffe44d"/>
+    <!-- Tenge sign ₸ -->
+    <text x="36" y="27" text-anchor="middle" font-size="14" font-weight="900" fill="#b8860b" font-family="Arial">₸</text>
+    <!-- Gold border highlight -->
+    <ellipse cx="36" cy="22" rx="15" ry="13" fill="none" stroke="#f0c040" stroke-width="1.5"/>
+  </svg>
+</div>
+  <div class="lang-appname">Jinau</div>
+  <div class="lang-tagline" id="lang-sub">Тілді таңдаңыз • Выберите язык</div>
+  <button class="lang-btn selected" id="btn-kz" onclick="selectLang('kz')">
+    <span class="lang-flag">🇰🇿</span>
+    <div class="lang-info"><div class="lang-name">Қазақша</div><div class="lang-native">Қазақ тілі</div></div>
+  </button>
+  <button class="lang-btn" id="btn-ru" onclick="selectLang('ru')">
+    <span class="lang-flag">🇷🇺</span>
+    <div class="lang-info"><div class="lang-name">Русский</div><div class="lang-native">Русский язык</div></div>
+  </button>
+  <button class="lang-start" id="lang-start-btn" onclick="startApp()">Бастау</button>
+</div>
+
+<!-- ══ HOME ══ -->
 <div class="tab active" id="tab-home">
-  <div class="hdr">
-    <div style="display:flex;justify-content:space-between;align-items:center">
-      <div class="htitle">Мой бюджет</div>
-      <span class="pill" style="background:var(--pb);color:var(--p)" id="h-month">—</span>
+  <div class="home-hdr">
+    <div class="jinau-logo">
+      <div class="jinau-icon" style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#17a8a5,#0a6e6c);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(14,122,120,.35)">
+  <svg width="22" height="22" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="36" cy="52" rx="18" ry="5" fill="#b8860b"/>
+    <rect x="18" y="32" width="36" height="20" fill="#daa520"/>
+    <ellipse cx="36" cy="32" rx="18" ry="5" fill="#ffd700"/>
+    <ellipse cx="36" cy="22" rx="15" ry="13" fill="#ffd700"/>
+    <ellipse cx="36" cy="22" rx="13" ry="11" fill="#ffe44d"/>
+    <text x="36" y="27" text-anchor="middle" font-size="14" font-weight="900" fill="#b8860b" font-family="Arial">₸</text>
+  </svg>
+</div>
+      <div class="jinau-name">Jinau</div>
     </div>
-    <div class="hdate" id="h-date">—</div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <button onclick="switchLang('kz')" id="flag-kz" style="background:none;border:none;cursor:pointer;font-size:24px;line-height:1;opacity:1;filter:none;padding:2px;border-radius:6px;transition:all .2s" title="Қазақша">🇰🇿</button>
+      <button onclick="switchLang('ru')" id="flag-ru" style="background:none;border:none;cursor:pointer;font-size:24px;line-height:1;opacity:0.35;filter:grayscale(60%);padding:2px;border-radius:6px;transition:all .2s" title="Русский">🇷🇺</button>
+    </div>
   </div>
-  <div class="bal">
-    <div style="font-size:13px;color:rgba(255,255,255,0.75)">Доступный баланс</div>
-    <div style="font-size:32px;font-weight:800;color:#fff;margin-top:4px" id="h-bal">—</div>
-    <div class="brow">
-      <div class="bi"><div class="l">Доходы</div><div class="v" id="h-inc">—</div></div>
-      <div class="bi"><div class="l">Расходы</div><div class="v" id="h-exp">—</div></div>
-      <div class="bi"><div class="l">Инв. доход</div><div class="v" id="h-invret">—</div></div>
-      <div class="bi"><div class="l">Кредиты</div><div class="v" id="h-crd">—</div></div>
+  <div style="padding:0 16px 6px;font-size:13px;color:var(--txt2)" id="h-date"></div>
+
+  <div class="card-hero">
+    <div style="font-size:13px;color:rgba(255,255,255,.75)" data-t="balance_label">—</div>
+    <div style="font-size:34px;font-weight:900;color:#fff;margin:4px 0 18px;letter-spacing:-.5px" id="h-bal">—</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px">
+      <div><div style="font-size:10px;color:rgba(255,255,255,.65);margin-bottom:2px" data-t="income_label">—</div><div style="font-size:12px;font-weight:800;color:#fff" id="h-inc">—</div></div>
+      <div><div style="font-size:10px;color:rgba(255,255,255,.65);margin-bottom:2px" data-t="expense_label">—</div><div style="font-size:12px;font-weight:800;color:#fff" id="h-exp">—</div></div>
+      <div><div style="font-size:10px;color:rgba(255,255,255,.65);margin-bottom:2px" data-t="inv_income_label">—</div><div style="font-size:12px;font-weight:800;color:#fff" id="h-invret">—</div></div>
+      <div><div style="font-size:10px;color:rgba(255,255,255,.65);margin-bottom:2px" data-t="credit_label">—</div><div style="font-size:12px;font-weight:800;color:#fff" id="h-crd">—</div></div>
     </div>
+  </div>
+
+  <div class="gold-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div><div style="font-size:12px;color:var(--gold2);font-weight:600" data-t="salary_label">—</div><div style="font-size:18px;font-weight:800;color:var(--txt)" id="h-sal">—</div></div>
+      <button class="edit-btn" style="background:var(--gold-light);color:var(--gold2)" onclick="openSalModal()" data-t="change_btn">—</button>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div><div style="font-size:12px;color:var(--gold2);font-weight:600" data-t="extra_income_label">—</div><div style="font-size:18px;font-weight:800;color:var(--gd)" id="h-ext">—</div></div>
+      <button class="edit-btn" style="background:var(--gb);color:var(--gd)" onclick="openModal('m-ext')" data-t="add_btn">—</button>
+    </div>
+  </div>
+
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <div class="sec" data-t="analytics_title">—</div>
+  </div>
+  <div class="period-row">
+    <button class="prbtn active" onclick="setPeriod(this)" data-t="period_month">—</button>
+    <button class="prbtn" onclick="setPeriod(this)" data-t="period_week">—</button>
+    <button class="prbtn" onclick="setPeriod(this)" data-t="period_day">—</button>
+    <button class="prbtn" onclick="setPeriod(this)" data-t="period_year">—</button>
+  </div>
+  <div style="display:flex;gap:8px;padding:0 16px 10px;overflow-x:auto">
+    <button class="prbtn active" id="dmode-all" onclick="setDonutMode('all',this)" data-t="dmode_all">—</button>
+    <button class="prbtn" id="dmode-exp" onclick="setDonutMode('exp',this)" data-t="dmode_exp">—</button>
+    <button class="prbtn" id="dmode-inv" onclick="setDonutMode('inv',this)" data-t="dmode_inv">—</button>
   </div>
   <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-      <div><div style="font-size:12px;color:var(--txt2)">Зарплата</div><div style="font-size:17px;font-weight:700;color:var(--txt)" id="h-sal">—</div></div>
-      <button class="se" onclick="openModal('m-sal')">Изменить</button>
-    </div>
-    <div style="display:flex;justify-content:space-between;align-items:center">
-      <div><div style="font-size:12px;color:var(--txt2)">Доп. доход</div><div style="font-size:17px;font-weight:700;color:var(--g)" id="h-ext">—</div></div>
-      <button class="se" onclick="openModal('m-ext')">+ Добавить</button>
+    <div class="donut-wrap">
+      <canvas id="donut-canvas" width="130" height="130" style="flex-shrink:0"></canvas>
+      <div id="donut-legend" style="flex:1"></div>
     </div>
   </div>
 
-  <!-- ANALYTICS -->
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;margin-bottom:8px">
-    <div class="sec" style="margin:0">Аналитика</div>
-    <div class="period-row" style="margin:0">
-      <button class="period-btn active" onclick="setPeriod('day',this)">День</button>
-      <button class="period-btn" onclick="setPeriod('week',this)">Неделя</button>
-      <button class="period-btn" onclick="setPeriod('month',this)">Месяц</button>
-      <button class="period-btn" onclick="setPeriod('year',this)">Год</button>
-    </div>
-  </div>
-  <div class="card2" style="padding:14px">
-    <canvas id="main-chart" height="180"></canvas>
-  </div>
-  <div class="strow" style="margin-top:10px">
-    <div class="stc"><div class="lbl">Расходы / период</div><div class="val" style="color:var(--r)" id="a-exp">—</div></div>
-    <div class="stc"><div class="lbl">Кредиты / период</div><div class="val" style="color:var(--a)" id="a-crd">—</div></div>
-  </div>
-  <div class="strow">
-    <div class="stc"><div class="lbl">Инвестиции</div><div class="val" style="color:var(--p)" id="a-inv">—</div></div>
-    <div class="stc"><div class="lbl">Сбережения</div><div class="val" style="color:var(--g)" id="a-sav">—</div></div>
-  </div>
-
-  <div class="sec">Последние операции</div>
-  <div id="h-txlist"></div>
+  <div class="sec" data-t="recent_ops">—</div>
+  <div class="card" style="padding:0;overflow:hidden"><div id="h-txlist"></div></div>
 </div>
 
-<!-- INCOME -->
+<!-- ══ INCOME ══ -->
 <div class="tab" id="tab-income">
   <div class="hdr">
-    <div class="htitle" style="padding-bottom:2px">Доходы</div>
-    <div class="hdate" id="inc-date">—</div>
+    <div class="htop">
+      <div class="htitle" data-t="income_title">—</div>
+      <button class="btn-gold" style="width:auto;padding:8px 16px;margin:0;font-size:13px" onclick="openModal('m-add-inc')" data-t="add_btn">—</button>
+    </div>
+    <div class="hdate" id="inc-date"></div>
   </div>
-  <div class="strow">
-    <div class="stc"><div class="lbl">Подтверждено</div><div class="val" style="color:var(--g)" id="inc-conf">—</div></div>
-    <div class="stc"><div class="lbl">Ожидает</div><div class="val" style="color:var(--gy)" id="inc-pend">—</div></div>
+  <div class="row2">
+    <div class="mini-card"><div class="lbl" data-t="confirmed_label">—</div><div class="val" style="color:var(--gd)" id="inc-conf">—</div></div>
+    <div class="mini-card"><div class="lbl" data-t="pending_label">—</div><div class="val" style="color:var(--gy)" id="inc-pend">—</div></div>
   </div>
-  <div class="sec">Основные источники</div>
-  <div id="inc-base-list"></div>
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;margin-bottom:8px">
-    <div style="font-size:17px;font-weight:700;color:var(--txt)">Инвестиционные доходы</div>
-    <span style="font-size:11px;color:var(--txt2)">нажмите для подтверждения</span>
+  <div class="sec" data-t="income_sources">—</div>
+  <div class="card" style="padding:0;overflow:hidden" id="inc-base-list"></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;padding-right:16px;margin-top:4px">
+    <div class="sec" data-t="inv_income_title">—</div>
+    <span style="font-size:11px;color:var(--txt2)" data-t="tap_to_confirm">—</span>
   </div>
-  <div id="inc-inv-list"></div>
+  <div id="inc-inv-list" style="padding:0 16px"></div>
 </div>
 
-<!-- EXPENSE -->
+<!-- ══ EXPENSE ══ -->
 <div class="tab" id="tab-expense">
   <div class="hdr">
-    <div class="htitle" style="padding-bottom:2px">Расходы</div>
-    <div class="hdate">Апрель 2026</div>
+    <div class="htop">
+      <div class="htitle" data-t="expense_title">—</div>
+      <button class="btn-del" style="width:auto;padding:8px 16px;margin:0;font-size:13px;border-radius:20px" onclick="openModal('m-add-exp')" data-t="add_btn">—</button>
+    </div>
+    <div class="hdate" id="exp-date"></div>
   </div>
-  <div class="strow">
-    <div class="stc"><div class="lbl">Потрачено</div><div class="val" style="color:var(--r)" id="exp-total">—</div></div>
-    <div class="stc"><div class="lbl">От дохода</div><div class="val" style="color:var(--a)" id="exp-pct">—</div></div>
+  <div class="row2">
+    <div class="mini-card"><div class="lbl" data-t="spent_label">—</div><div class="val" style="color:var(--r)" id="exp-total">—</div></div>
+    <div class="mini-card"><div class="lbl" data-t="of_income_label">—</div><div class="val" style="color:var(--a)" id="exp-pct">—</div></div>
   </div>
-  <div class="sec">Категории</div>
-  <div id="exp-cats"></div>
-  <div class="sec">История расходов</div>
-  <div id="exp-hist"></div>
+  <div class="sec" data-t="by_category">—</div>
+  <div id="exp-cats" style="padding:0 16px"></div>
+  <div class="sec" data-t="all_expenses">—</div>
+  <div class="card" style="padding:0;overflow:hidden" id="exp-hist"></div>
 </div>
 
-<!-- CREDITS -->
+<!-- ══ CREDITS ══ -->
 <div class="tab" id="tab-credits">
   <div class="hdr">
-    <div style="display:flex;justify-content:space-between;align-items:center;padding-top:4px">
-      <div class="htitle">Кредиты</div>
-      <button class="tb ap" onclick="openModal('m-add-credit')" style="font-size:13px;padding:7px 14px">+ Добавить</button>
+    <div class="htop">
+      <div class="htitle" data-t="credits_title">—</div>
+      <button class="edit-btn" style="background:var(--gold-light);color:var(--gold2)" onclick="openModal('m-add-credit')" data-t="add_btn">—</button>
     </div>
-    <div class="hdate">Апрель 2026</div>
+    <div class="hdate" id="crd-date"></div>
   </div>
-  <div class="strow">
-    <div class="stc"><div class="lbl">Общий долг</div><div class="val" style="color:var(--r)" id="crd-total">—</div></div>
-    <div class="stc"><div class="lbl">Платёж/мес</div><div class="val" style="color:var(--a)" id="crd-monthly">—</div></div>
+  <div class="row2">
+    <div class="mini-card"><div class="lbl" data-t="total_debt">—</div><div class="val" style="color:var(--r)" id="crd-total">—</div></div>
+    <div class="mini-card"><div class="lbl" data-t="monthly_payment">—</div><div class="val" style="color:var(--a)" id="crd-monthly">—</div></div>
   </div>
-  <div class="sec">Активные кредиты</div>
-  <div id="crd-list"></div>
+  <div class="sec" data-t="active_credits">—</div>
+  <div id="crd-list" style="padding:0 16px"></div>
 </div>
 
-<!-- INVEST -->
+<!-- ══ INVEST ══ -->
 <div class="tab" id="tab-invest">
   <div class="hdr">
-    <div class="htitle" style="padding-bottom:2px">Инвестиции</div>
-    <div class="hdate">Апрель 2026</div>
+    <div class="htitle" data-t="invest_title">—</div>
+    <div class="hdate" id="inv-date"></div>
   </div>
-  <div class="strow">
-    <div class="stc"><div class="lbl">Рыночная стоимость</div><div class="val" style="color:var(--p)" id="inv-market">—</div></div>
-    <div class="stc"><div class="lbl">Вложено</div><div class="val" style="color:var(--txt2)" id="inv-cost">—</div></div>
+  <div class="row2">
+    <div class="mini-card"><div class="lbl" data-t="market_value">—</div><div class="val" style="color:var(--teal)" id="inv-market">—</div></div>
+    <div class="mini-card"><div class="lbl" data-t="pnl_label">—</div><div class="val" id="inv-pnl">—</div></div>
   </div>
-  <div class="strow">
-    <div class="stc"><div class="lbl">П/У</div><div class="val" id="inv-pnl">—</div></div>
-    <div class="stc"><div class="lbl">Доход/мес</div><div class="val" style="color:var(--p)" id="inv-monthly">—</div></div>
+  <div class="row2">
+    <div class="mini-card"><div class="lbl" data-t="invested_label">—</div><div class="val" style="color:var(--txt2)" id="inv-cost">—</div></div>
+    <div class="mini-card"><div class="lbl" data-t="monthly_income">—</div><div class="val" style="color:var(--teal)" id="inv-monthly">—</div></div>
   </div>
-  <div style="display:flex;justify-content:space-between;align-items:center;margin:4px 0 8px">
-    <div class="sec" style="margin:0">Биржевые активы</div>
-    <button class="tb ap" onclick="openModal('m-add-inv')" style="font-size:12px;padding:6px 12px">+ Добавить</button>
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:0 16px 10px">
+    <div class="sec" style="padding:0" data-t="stock_assets">—</div>
+    <button class="edit-btn" onclick="openInvModal('stocks')" data-t="add_btn">—</button>
   </div>
-  <div id="inv-stock-list"></div>
-  <div style="display:flex;justify-content:space-between;align-items:center;margin:12px 0 8px">
-    <div class="sec" style="margin:0">Краудфандинг / Бизнес</div>
-    <button class="tb ap" onclick="openModal('m-add-crowd')" style="font-size:12px;padding:6px 12px">+ Добавить</button>
+  <div id="inv-stock-list" style="padding:0 16px"></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 16px 10px">
+    <div class="sec" style="padding:0" data-t="crowd_title">—</div>
+    <button class="edit-btn" onclick="openInvModal('crowd')" data-t="add_btn">—</button>
   </div>
-  <div id="inv-crowd-list"></div>
+  <div id="inv-crowd-list" style="padding:0 16px"></div>
 </div>
 
-<!-- HISTORY -->
+<!-- ══ HISTORY ══ -->
 <div class="tab" id="tab-history">
   <div class="hdr">
-    <div class="htitle" style="padding-bottom:2px">История</div>
-    <div class="hdate">Все операции</div>
+    <div class="htitle" data-t="history_title">—</div>
+    <div class="hdate" data-t="all_ops">—</div>
   </div>
-  <div class="period-row" style="margin-top:8px">
-    <button class="period-btn active" onclick="setHistFilter('all',this)">Все</button>
-    <button class="period-btn" onclick="setHistFilter('inc',this)">Доходы</button>
-    <button class="period-btn" onclick="setHistFilter('exp',this)">Расходы</button>
-    <button class="period-btn" onclick="setHistFilter('inv',this)">Инвестиции</button>
-    <button class="period-btn" onclick="setHistFilter('crd',this)">Кредиты</button>
+  <div class="month-bar" id="month-bar"></div>
+  <div class="hf-row">
+    <button class="hfbtn active" onclick="setHF('all',this)" data-t="filter_all">—</button>
+    <button class="hfbtn" onclick="setHF('inc',this)" data-t="filter_inc">—</button>
+    <button class="hfbtn" onclick="setHF('exp',this)" data-t="filter_exp">—</button>
+    <button class="hfbtn" onclick="setHF('inv',this)" data-t="filter_inv">—</button>
+    <button class="hfbtn" onclick="setHF('crd',this)" data-t="filter_crd">—</button>
   </div>
-  <div id="hist-list"></div>
+  <div class="card" style="padding:0;overflow:hidden;margin-top:0" id="hist-list"></div>
 </div>
 
-<button class="fab" onclick="openModal('m-add')">+</button>
 
-<div class="bnav">
-  <button class="nb active" id="n-home" onclick="go('home')"><span class="ni">🏠</span><span class="nl">Главная</span></button>
-  <button class="nb" id="n-income" onclick="go('income')"><span class="ni">📥</span><span class="nl">Доходы</span></button>
-  <button class="nb" id="n-expense" onclick="go('expense')"><span class="ni">📤</span><span class="nl">Расходы</span></button>
-  <button class="nb" id="n-credits" onclick="go('credits')"><span class="ni">🏦</span><span class="nl">Кредиты</span></button>
-  <button class="nb" id="n-invest" onclick="go('invest')"><span class="ni">📈</span><span class="nl">Инвестиции</span></button>
-  <button class="nb" id="n-history" onclick="go('history')"><span class="ni">📋</span><span class="nl">История</span></button>
+<!-- ══ ACCOUNTS ══ -->
+<div class="tab" id="tab-accounts">
+  <div class="hdr">
+    <div class="htop">
+      <div class="htitle" data-t="accounts_title">—</div>
+      <button class="btn-gold" style="width:auto;padding:8px 16px;margin:0;font-size:13px" onclick="openAddAccount()" data-t="add_account_btn">—</button>
+    </div>
+    <div class="hdate" data-t="accounts_sub">—</div>
+  </div>
+  <div class="row2">
+    <div class="mini-card"><div class="lbl" data-t="total_balance_label">—</div><div class="val" style="color:var(--teal)" id="acc-total">—</div></div>
+    <div class="mini-card"><div class="lbl" data-t="accounts_count">—</div><div class="val" id="acc-count">—</div></div>
+  </div>
+  <div class="sec" data-t="my_accounts">—</div>
+  <div id="acc-list" style="padding:0 16px"></div>
 </div>
 
-<!-- MODALS -->
-<div class="mo-wrap" id="m-add">
-  <div class="md">
-    <div class="mdtitle">Новая запись <button class="mcls" onclick="closeModal('m-add')">✕</button></div>
-    <div class="fg"><div class="fl">Тип</div>
-      <div class="tbg" id="add-type-btns">
-        <button class="tb ai" onclick="selType(this,'inc')">Доход</button>
-        <button class="tb" onclick="selType(this,'exp')">Расход</button>
+<nav class="nav">
+  <button class="nb active" id="n-home" onclick="go('home')"><span class="ni">🏠</span><span class="nl" data-t="nav_home">—</span></button>
+  <button class="nb" id="n-income" onclick="go('income')"><span class="ni">📥</span><span class="nl" data-t="nav_income">—</span></button>
+  <button class="nb" id="n-expense" onclick="go('expense')"><span class="ni">📤</span><span class="nl" data-t="nav_expense">—</span></button>
+  <button class="nb" id="n-credits" onclick="go('credits')"><span class="ni">🏦</span><span class="nl" data-t="nav_credits">—</span></button>
+  <button class="nb" id="n-invest" onclick="go('invest')"><span class="ni">📈</span><span class="nl" data-t="nav_invest">—</span></button>
+  <button class="nb" id="n-accounts" onclick="go('accounts')"><span class="ni">💳</span><span class="nl" data-t="nav_accounts">—</span></button>
+  <button class="nb" id="n-history" onclick="go('history')"><span class="ni">📋</span><span class="nl" data-t="nav_history">—</span></button>
+</nav>
+
+
+<!-- ══ MODALS ══ -->
+<div class="overlay" id="m-add">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title"><span data-t="quick_add">—</span><button class="mcls" onclick="closeModal('m-add')">✕</button></div>
+    <div class="sheet-body">
+      <div class="fg"><div class="fl" data-t="type_label">—</div>
+        <div class="tbg" id="qadd-type">
+          <button class="tb on-g" onclick="selTb('qadd-type',this,'on-g');S.qaType='inc'" data-t="income_btn">—</button>
+          <button class="tb" onclick="selTb('qadd-type',this,'on-r');S.qaType='exp'" data-t="expense_btn">—</button>
+        </div>
       </div>
+      <div class="fg"><div class="fl" data-t="name_label">—</div><input class="fi" id="qa-nm" data-ph="name_ph"></div>
+      <div class="fg"><div class="fl" data-t="amount_label">—</div><input class="fi" type="number" id="qa-am" placeholder="0" inputmode="numeric"></div>
+      <div class="fg"><div class="fl" data-t="date_label">—</div><input class="fi" type="date" id="qa-dt"></div>
+      <button class="btn-main" onclick="saveQA()" data-t="save_btn">—</button>
     </div>
-    <div class="fg"><div class="fl">Название</div><input class="fi" type="text" id="add-nm" placeholder="Например: Продукты"></div>
-    <div class="fg"><div class="fl">Сумма (₸)</div><input class="fi" type="number" id="add-am" placeholder="0" inputmode="numeric"></div>
-    <div class="fg"><div class="fl">Категория</div>
-      <select class="fi" id="add-cat">
-        <option value="Продукты">🛒 Продукты</option>
-        <option value="Транспорт">🚗 Транспорт</option>
-        <option value="Кафе">🍽️ Кафе и рестораны</option>
-        <option value="Подписки">📱 Подписки</option>
-        <option value="Здоровье">🏥 Здоровье</option>
-        <option value="Одежда">👕 Одежда</option>
-        <option value="Развлечения">🎬 Развлечения</option>
-        <option value="Прочее">💰 Прочее</option>
-      </select>
-    </div>
-    <div class="fg"><div class="fl">Дата</div><input class="fi" type="date" id="add-dt"></div>
-    <button class="sb2" onclick="saveAdd()">Сохранить</button>
   </div>
 </div>
 
-<div class="mo-wrap" id="m-sal">
-  <div class="md">
-    <div class="mdtitle">Зарплата <button class="mcls" onclick="closeModal('m-sal')">✕</button></div>
-    <div class="fg"><div class="fl">Сумма (₸)</div><input class="fi" type="number" id="sal-in" inputmode="numeric"></div>
-    <div class="fg"><div class="fl">День выплаты</div><input class="fi" type="number" id="sal-day" value="10" min="1" max="31" inputmode="numeric"></div>
-    <button class="sb2" onclick="saveSal()">Сохранить</button>
-  </div>
-</div>
-
-<div class="mo-wrap" id="m-ext">
-  <div class="md">
-    <div class="mdtitle">Доп. доход <button class="mcls" onclick="closeModal('m-ext')">✕</button></div>
-    <div class="fg"><div class="fl">Источник</div><input class="fi" type="text" id="ext-nm" placeholder="Фриланс, аренда..."></div>
-    <div class="fg"><div class="fl">Сумма (₸)</div><input class="fi" type="number" id="ext-am" placeholder="0" inputmode="numeric"></div>
-    <button class="sb2" onclick="saveExt()">Добавить</button>
-  </div>
-</div>
-
-<div class="mo-wrap" id="m-add-credit">
-  <div class="md">
-    <div class="mdtitle">Новый кредит <button class="mcls" onclick="closeModal('m-add-credit')">✕</button></div>
-    <div class="fg"><div class="fl">Название / Банк</div><input class="fi" type="text" id="crd-nm" placeholder="Ипотека, Halyk Bank..."></div>
-    <div class="fg"><div class="fl">Сумма кредита (₸)</div><input class="fi" type="number" id="crd-sum" placeholder="0" inputmode="numeric" oninput="calcCredit()"></div>
-    <div class="fg"><div class="fl">Процентная ставка % годовых</div><input class="fi" type="number" id="crd-rate" placeholder="14.5" inputmode="decimal" oninput="calcCredit()"></div>
-    <div class="fg"><div class="fl">Срок (месяцев)</div><input class="fi" type="number" id="crd-months" placeholder="24" inputmode="numeric" oninput="calcCredit()"></div>
-    <div class="fg"><div class="fl">Вид кредита</div>
-      <div class="tbg" id="crd-type-btns">
-        <button class="tb ap" onclick="selCrdType(this,'diff')">Дифференцированный</button>
-        <button class="tb" onclick="selCrdType(this,'ann')">Аннуитетный</button>
+<div class="overlay" id="m-add-inc">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title"><span data-t="income_title">—</span><button class="mcls" onclick="closeModal('m-add-inc')">✕</button></div>
+    <div class="sheet-body">
+      <div class="fg"><div class="fl" data-t="category_label">—</div>
+        <select class="fi" id="inc-cat" onchange="toggleIncOther()">
+          <option value="IT" data-t-opt="cat_it">—</option>
+          <option value="Дизайн" data-t-opt="cat_design">—</option>
+          <option value="Сауда" data-t-opt="cat_trade">—</option>
+          <option value="Кеңес" data-t-opt="cat_consult">—</option>
+          <option value="Жалдау" data-t-opt="cat_rent">—</option>
+          <option value="Көлік" data-t-opt="cat_transport">—</option>
+          <option value="Басқа" data-t-opt="cat_other">—</option>
+        </select>
       </div>
+      <div class="fg" id="inc-other-wrap" style="display:none"><div class="fl" data-t="other_source">—</div><input class="fi" id="inc-other-nm" data-ph="other_ph"></div>
+      <div class="fg"><div class="fl" data-t="amount_label">—</div><input class="fi" type="number" id="inc-am" placeholder="0" inputmode="numeric"></div>
+      <div class="fg"><div class="fl" data-t="acc_label">—</div><select class="fi" id="inc-account"><option value="">—</option></select></div>
+      <div class="fg"><div class="fl" data-t="date_label">—</div><input class="fi" type="date" id="inc-dt"></div>
+      <div class="fg"><div class="fl" data-t="comment_label">—</div><textarea class="fi" id="inc-comment" rows="2" data-ph="comment_ph"></textarea></div>
+      <button class="btn-gold" onclick="saveInc()" data-t="add_income_btn">—</button>
     </div>
-    <div class="fg"><div class="fl">Уже выплачено (₸, если есть)</div><input class="fi" type="number" id="crd-paid" placeholder="0" inputmode="numeric" oninput="calcCredit()"></div>
-    <!-- CALC PREVIEW -->
-    <div id="crd-preview" style="background:var(--bg2);border-radius:12px;padding:14px;margin-bottom:14px;display:none">
-      <div style="font-size:13px;font-weight:700;color:var(--txt2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">Расчёт платежей</div>
-      <div class="info-row"><span class="info-lbl">Ежемес. платёж</span><span class="info-val" id="calc-monthly" style="color:var(--p)">—</span></div>
-      <div class="info-row"><span class="info-lbl">Общая сумма выплат</span><span class="info-val" id="calc-total">—</span></div>
-      <div class="info-row"><span class="info-lbl">Переплата</span><span class="info-val" id="calc-over" style="color:var(--r)">—</span></div>
-      <div class="info-row"><span class="info-lbl">Остаток долга</span><span class="info-val" id="calc-remain">—</span></div>
-    </div>
-    <button class="sb2" onclick="saveCredit()">Добавить кредит</button>
   </div>
 </div>
 
-<div class="mo-wrap" id="m-add-inv">
-  <div class="md">
-    <div class="mdtitle">Биржевой актив <button class="mcls" onclick="closeModal('m-add-inv')">✕</button></div>
-    <div class="fg"><div class="fl">Название</div><input class="fi" type="text" id="inv-nm" placeholder="Kaspi.kz, ОФЗ..."></div>
-    <div class="fg"><div class="fl">Тип</div>
-      <div class="tbg" id="inv-type-btns">
-        <button class="tb ap" onclick="selInvType(this,'stocks')">Акции</button>
-        <button class="tb" onclick="selInvType(this,'bonds')">Облигации</button>
-        <button class="tb" onclick="selInvType(this,'etf')">ETF</button>
-        <button class="tb" onclick="selInvType(this,'crypto')">Крипто</button>
+<div class="overlay" id="m-add-exp">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title"><span id="exp-modal-title" data-t="expense_title">—</span><button class="mcls" onclick="closeModal('m-add-exp')">✕</button></div>
+    <div class="sheet-body">
+      <input type="hidden" id="exp-edit-id" value="">
+      <div class="fg"><div class="fl" data-t="category_label">—</div>
+        <select class="fi" id="exp-cat">
+          <option value="Азық" data-t-opt="ecat_food">—</option>
+          <option value="Көлік" data-t-opt="ecat_transport">—</option>
+          <option value="Кафе" data-t-opt="ecat_cafe">—</option>
+          <option value="Жазылым" data-t-opt="ecat_subs">—</option>
+          <option value="Денсаулық" data-t-opt="ecat_health">—</option>
+          <option value="Киім" data-t-opt="ecat_clothes">—</option>
+          <option value="Ойын-сауық" data-t-opt="ecat_entertain">—</option>
+          <option value="ТКШ" data-t-opt="ecat_utility">—</option>
+          <option value="Басқа" data-t-opt="ecat_other">—</option>
+        </select>
       </div>
+      <div class="fg"><div class="fl" data-t="name_label">—</div><input class="fi" id="exp-nm" data-ph="name_ph"></div>
+      <div class="fg"><div class="fl" data-t="amount_label">—</div><input class="fi" type="number" id="exp-am" placeholder="0" inputmode="numeric"></div>
+      <div class="fg"><div class="fl" data-t="date_label">—</div><input class="fi" type="date" id="exp-dt"></div>
+      <div class="fg"><div class="fl" data-t="comment_label">—</div><textarea class="fi" id="exp-comment" rows="2" data-ph="comment_ph"></textarea></div>
+      <button class="btn-main" id="exp-save-btn" onclick="saveExp()" data-t="add_expense_btn">—</button>
+      <button class="btn-del" id="exp-del-btn" onclick="delExp()" style="display:none" data-t="delete_btn">—</button>
     </div>
-    <div class="fg"><div class="fl">Цена покупки (₸)</div><input class="fi" type="number" id="inv-buy" placeholder="0" inputmode="numeric"></div>
-    <div class="fg"><div class="fl">Количество (шт.)</div><input class="fi" type="number" id="inv-qty" placeholder="1" inputmode="numeric"></div>
-    <div class="fg"><div class="fl">Текущая рыночная цена (₸)</div><input class="fi" type="number" id="inv-mkt" placeholder="0" inputmode="numeric"></div>
-    <div class="fg"><div class="fl">Ежемес. доход (₸, дивиденды/купон)</div><input class="fi" type="number" id="inv-ret" placeholder="0" inputmode="numeric"></div>
-    <button class="sb2" onclick="saveStockInv()">Добавить</button>
   </div>
 </div>
 
-<div class="mo-wrap" id="m-add-crowd">
-  <div class="md">
-    <div class="mdtitle">Краудфандинг / Бизнес <button class="mcls" onclick="closeModal('m-add-crowd')">✕</button></div>
-    <div class="fg"><div class="fl">Название проекта</div><input class="fi" type="text" id="cr-nm" placeholder="Кофейня, стартап..."></div>
-    <div class="fg"><div class="fl">Тип</div>
-      <div class="tbg" id="cr-type-btns">
-        <button class="tb ap" onclick="selCrType(this,'crowd')">Краудфандинг</button>
-        <button class="tb" onclick="selCrType(this,'biz')">Бизнес</button>
-        <button class="tb" onclick="selCrType(this,'angel')">Ангел</button>
-      </div>
+<div class="overlay" id="m-sal">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title"><span data-t="salary_title">—</span><button class="mcls" onclick="closeModal('m-sal')">✕</button></div>
+    <div class="sheet-body">
+      <div class="fg"><div class="fl" data-t="monthly_salary">—</div><input class="fi" type="number" id="sal-in" inputmode="numeric"></div>
+      <div class="fg"><div class="fl" data-t="pay_day">—</div><input class="fi" type="number" id="sal-day" value="10" min="1" max="31" inputmode="numeric"></div>
+      <div class="fg"><div class="fl" data-t="acc_label">—</div><select class="fi" id="sal-account"><option value="">—</option></select></div>
+      <button class="btn-main" onclick="saveSal()" data-t="save_btn">—</button>
     </div>
-    <div class="fg"><div class="fl">Сумма вложений (₸)</div><input class="fi" type="number" id="cr-am" placeholder="0" inputmode="numeric"></div>
-    <div class="fg"><div class="fl">Ежемес. доход (₸)</div><input class="fi" type="number" id="cr-ret" placeholder="0" inputmode="numeric"></div>
-    <div class="fg"><div class="fl">Прогресс сбора %</div><input class="fi" type="number" id="cr-prg" placeholder="0" min="0" max="100" inputmode="numeric"></div>
-    <div class="fg"><div class="fl">Статус</div>
-      <div class="tbg" id="cr-st-btns">
-        <button class="tb ai" onclick="selCrSt(this,'active')">Активный</button>
-        <button class="tb" onclick="selCrSt(this,'pending')">Ожидание</button>
-        <button class="tb" onclick="selCrSt(this,'exit')">Выход</button>
-      </div>
-    </div>
-    <button class="sb2" onclick="saveCrowdInv()">Добавить</button>
   </div>
 </div>
 
-</div><!-- .screen -->
+<div class="overlay" id="m-ext">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title"><span data-t="extra_income_title">—</span><button class="mcls" onclick="closeModal('m-ext')">✕</button></div>
+    <div class="sheet-body">
+      <div class="fg"><div class="fl" data-t="category_label">—</div>
+        <select class="fi" id="ext-cat" onchange="toggleExtOther()">
+          <option value="IT" data-t-opt="cat_it">—</option>
+          <option value="Дизайн" data-t-opt="cat_design">—</option>
+          <option value="Сауда" data-t-opt="cat_trade">—</option>
+          <option value="Кеңес" data-t-opt="cat_consult">—</option>
+          <option value="Жалдау" data-t-opt="cat_rent">—</option>
+          <option value="Көлік" data-t-opt="cat_transport">—</option>
+          <option value="Басқа" data-t-opt="cat_other">—</option>
+        </select>
+      </div>
+      <div class="fg" id="ext-other-wrap" style="display:none"><div class="fl" data-t="other_source">—</div><input class="fi" id="ext-other-nm" data-ph="other_ph"></div>
+      <div class="fg"><div class="fl" data-t="amount_label">—</div><input class="fi" type="number" id="ext-am" placeholder="0" inputmode="numeric"></div>
+      <div class="fg"><div class="fl" data-t="acc_label">—</div><select class="fi" id="ext-account"><option value="">—</option></select></div>
+      <div class="fg"><div class="fl" data-t="date_label">—</div><input class="fi" type="date" id="ext-dt"></div>
+      <button class="btn-gold" onclick="saveExt()" data-t="add_btn_action">—</button>
+    </div>
+  </div>
+</div>
 
+<div class="overlay" id="m-add-credit">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title"><span id="crd-modal-title" data-t="new_credit">—</span><button class="mcls" onclick="closeModal('m-add-credit')">✕</button></div>
+    <div class="sheet-body">
+      <input type="hidden" id="crd-edit-id" value="">
+      <div class="fg"><div class="fl" data-t="credit_name">—</div><input class="fi" id="crd-nm" data-ph="credit_name_ph"></div>
+      <div class="fg"><div class="fl" data-t="credit_sum">—</div><input class="fi" type="number" id="crd-sum" placeholder="0" inputmode="numeric" oninput="calcCredit()"></div>
+      <div class="fg"><div class="fl" data-t="monthly_payment_input">—</div><input class="fi" type="number" id="crd-payment" placeholder="0" inputmode="numeric" oninput="calcCredit()"></div>
+      <div class="fg"><div class="fl" data-t="credit_months">—</div><input class="fi" type="number" id="crd-months" placeholder="24" inputmode="numeric" oninput="calcCredit()"></div>
+      <div class="fg"><div class="fl" data-t="credit_type_label">—</div>
+        <div class="tbg" id="crd-type-btns">
+          <button class="tb on-t" onclick="selTb('crd-type-btns',this,'on-t');S.crdType='diff';calcCredit()" data-t="diff_type">—</button>
+          <button class="tb" onclick="selTb('crd-type-btns',this,'on-t');S.crdType='ann';calcCredit()" data-t="ann_type">—</button>
+        </div>
+      </div>
+      <div class="fg"><div class="fl" data-t="credit_paid">—</div><input class="fi" type="number" id="crd-paid" placeholder="0" inputmode="numeric" oninput="calcCredit()"></div>
+      <div id="crd-preview" style="display:none" class="calc-box">
+        <div style="font-size:11px;font-weight:800;color:var(--teal);margin-bottom:8px;text-transform:uppercase;letter-spacing:.6px" data-t="calc_preview">—</div>
+        <div class="calc-row"><span class="calc-lbl" data-t="monthly_pay">—</span><span class="calc-val" id="calc-monthly">—</span></div>
+        <div class="calc-row"><span class="calc-lbl" data-t="total_pay">—</span><span class="calc-val" id="calc-total">—</span></div>
+        <div class="calc-row"><span class="calc-lbl" data-t="computed_rate">—</span><span class="calc-val" id="calc-rate-computed" style="color:var(--teal)">—</span></div>
+        <div class="calc-row"><span class="calc-lbl" data-t="overpay">—</span><span class="calc-val" id="calc-over" style="color:var(--r)">—</span></div>
+        <div class="calc-row"><span class="calc-lbl" data-t="remaining">—</span><span class="calc-val" id="calc-remain">—</span></div>
+      </div>
+      <button class="btn-main" id="crd-save-btn" onclick="saveCredit()" data-t="add_credit_btn">—</button>
+      <button class="btn-del" id="crd-del-btn" onclick="delCredit()" style="display:none" data-t="delete_btn">—</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="m-add-inv">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title"><span id="inv-modal-title" data-t="invest_title">—</span><button class="mcls" onclick="closeModal('m-add-inv')">✕</button></div>
+    <div class="sheet-body">
+      <input type="hidden" id="inv-mode" value="stocks">
+      <div id="inv-stocks-fields">
+        <div class="fg"><div class="fl" data-t="invest_where">—</div>
+          <select class="fi" id="inv-where">
+            <option value="Акция" data-t-opt="iw_stocks">—</option>
+            <option value="Облигация" data-t-opt="iw_bonds">—</option>
+            <option value="ETF" data-t-opt="iw_etf">—</option>
+            <option value="Крипто" data-t-opt="iw_crypto">—</option>
+            <option value="Депозит" data-t-opt="iw_deposit">—</option>
+          </select>
+        </div>
+        <div class="fg"><div class="fl" data-t="currency_label">—</div>
+          <select class="fi" id="inv-currency">
+            <option value="₸">₸ — Теңге / Тенге</option>
+            <option value="$">$ — Доллар</option>
+            <option value="¥">¥ — Юань</option>
+            <option value="₽">₽ — Рубль</option>
+          </select>
+        </div>
+        <div class="fg"><div class="fl" data-t="ticker_label">—</div><input class="fi" id="inv-ticker" data-ph="ticker_ph"></div>
+        <div class="fg"><div class="fl" data-t="name_label">—</div><input class="fi" id="inv-nm" data-ph="inv_name_ph"></div>
+        <div class="fg"><div class="fl" data-t="buy_price">—</div><input class="fi" type="number" id="inv-buy" placeholder="0" inputmode="numeric"></div>
+        <div class="fg"><div class="fl" data-t="quantity">—</div><input class="fi" type="number" id="inv-qty" placeholder="1" inputmode="numeric"></div>
+        
+        
+        <div class="fg"><div class="fl" data-t="comment_label">—</div><textarea class="fi" id="inv-comment" rows="2" maxlength="70" data-ph="comment_ph"></textarea></div>
+      </div>
+      <div id="inv-crowd-fields" style="display:none">
+        <div class="fg"><div class="fl" data-t="invest_where">—</div>
+          <select class="fi" id="cr-where">
+            <option value="Краудфандинг" data-t-opt="cw_crowd">—</option>
+            <option value="Бизнес" data-t-opt="cw_biz">—</option>
+            <option value="Бизнес-ангел" data-t-opt="cw_angel">—</option>
+          </select>
+        </div>
+        <div class="fg"><div class="fl" data-t="company_name">—</div><input class="fi" id="cr-nm" maxlength="70" data-ph="company_ph"></div>
+        <div class="fg"><div class="fl" data-t="invest_amount">—</div><input class="fi" type="number" id="cr-buy" placeholder="0" inputmode="numeric"></div>
+        <div class="fg"><div class="fl" data-t="quantity">—</div><input class="fi" type="number" id="cr-qty" placeholder="1" inputmode="numeric"></div>
+        <div class="fg"><div class="fl" data-t="monthly_income">—</div><input class="fi" type="number" id="cr-ret" placeholder="0" inputmode="numeric"></div>
+        <div class="fg"><div class="fl" data-t="collect_progress">—</div><input class="fi" type="number" id="cr-prg" placeholder="0" min="0" max="100" inputmode="numeric"></div>
+        <div class="fg"><div class="fl" data-t="status_label">—</div>
+          <div class="tbg" id="cr-st-btns">
+            <button class="tb on-g" onclick="selTb('cr-st-btns',this,'on-g');S.crSt='active'" data-t="status_active">—</button>
+            <button class="tb" onclick="selTb('cr-st-btns',this,'on-g');S.crSt='pending'" data-t="status_pending">—</button>
+            <button class="tb" onclick="selTb('cr-st-btns',this,'on-g');S.crSt='exit'" data-t="status_exit">—</button>
+          </div>
+        </div>
+        <div class="fg"><div class="fl" data-t="comment_label">—</div><textarea class="fi" id="cr-comment" rows="2" maxlength="70" data-ph="comment_ph"></textarea></div>
+      </div>
+      <button class="btn-main" onclick="saveInv()" data-t="add_invest_btn">—</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ADD ACCOUNT -->
+<div class="overlay" id="m-add-account">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title"><span id="acc-modal-title" data-t="add_account_btn">—</span><button class="mcls" onclick="closeModal('m-add-account')">✕</button></div>
+    <div class="sheet-body">
+      <input type="hidden" id="acc-edit-id" value="">
+      <div class="fg"><div class="fl" data-t="acc_name_label">—</div><input class="fi" id="acc-name" data-ph="acc_name_ph"></div>
+      <div class="fg"><div class="fl" data-t="acc_type_label">—</div>
+        <select class="fi" id="acc-type">
+          <option value="card" data-t-opt="acc_type_card">—</option>
+          <option value="cash" data-t-opt="acc_type_cash">—</option>
+          <option value="deposit" data-t-opt="acc_type_deposit">—</option>
+          <option value="other" data-t-opt="acc_type_other">—</option>
+        </select>
+      </div>
+      <div class="fg"><div class="fl" data-t="acc_currency_label">—</div>
+        <select class="fi" id="acc-currency">
+          <option value="₸">₸ — Теңге / Тенге</option>
+          <option value="$">$ — Доллар</option>
+          <option value="¥">¥ — Юань</option>
+          <option value="₽">₽ — Рубль</option>
+        </select>
+      </div>
+      <div class="fg"><div class="fl" data-t="acc_balance_label">—</div><input class="fi" type="number" id="acc-balance" placeholder="0" inputmode="numeric"></div>
+      <div class="fg"><div class="fl" data-t="acc_color_label">—</div>
+        <div class="tbg" id="acc-color-btns">
+          <button class="tb on-t" style="background:#0e7a78;color:#fff;border:none" onclick="selAccColor(this,'#0e7a78')">●</button>
+          <button class="tb" style="background:#c8960c;color:#fff;border:none" onclick="selAccColor(this,'#c8960c')">●</button>
+          <button class="tb" style="background:#1565a8;color:#fff;border:none" onclick="selAccColor(this,'#1565a8')">●</button>
+          <button class="tb" style="background:#1a8c5a;color:#fff;border:none" onclick="selAccColor(this,'#1a8c5a')">●</button>
+          <button class="tb" style="background:#7d3c98;color:#fff;border:none" onclick="selAccColor(this,'#7d3c98')">●</button>
+          <button class="tb" style="background:#c0392b;color:#fff;border:none" onclick="selAccColor(this,'#c0392b')">●</button>
+        </div>
+        <input type="hidden" id="acc-color" value="#0e7a78">
+      </div>
+      <button class="btn-main" onclick="saveAccount()" data-t="save_btn">—</button>
+      <button class="btn-del" id="acc-del-btn" onclick="delAccount()" style="display:none" data-t="delete_btn">—</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT SALARY -->
+<div class="overlay" id="m-edit-sal-entry">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title"><span data-t="salary_title">—</span><button class="mcls" onclick="closeModal('m-edit-sal-entry')">✕</button></div>
+    <div class="sheet-body">
+      <div class="fg"><div class="fl" data-t="monthly_salary">—</div><input class="fi" type="number" id="esal-amount" inputmode="numeric"></div>
+      <div class="fg"><div class="fl" data-t="acc_label">—</div>
+        <select class="fi" id="esal-account"><option value="">— <span data-t="no_account">—</span> —</option></select>
+      </div>
+      <div class="fg"><div class="fl" data-t="date_label">—</div><input class="fi" type="date" id="esal-date"></div>
+      <button class="btn-main" onclick="saveSalEntry()" data-t="save_btn">—</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT INCOME ENTRY -->
+<div class="overlay" id="m-edit-inc-entry">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title"><span id="einc-title" data-t="income_title">—</span><button class="mcls" onclick="closeModal('m-edit-inc-entry')">✕</button></div>
+    <div class="sheet-body">
+      <input type="hidden" id="einc-edit-id">
+      <div class="fg"><div class="fl" data-t="name_label">—</div><input class="fi" id="einc-name" data-ph="name_ph"></div>
+      <div class="fg"><div class="fl" data-t="amount_label">—</div><input class="fi" type="number" id="einc-amount" placeholder="0" inputmode="numeric"></div>
+      <div class="fg"><div class="fl" data-t="acc_label">—</div>
+        <select class="fi" id="einc-account"><option value="">—</option></select>
+      </div>
+      <div class="fg"><div class="fl" data-t="date_label">—</div><input class="fi" type="date" id="einc-date"></div>
+      <button class="btn-main" onclick="saveIncEntry()" data-t="save_btn">—</button>
+      <button class="btn-del" onclick="delIncEntry()" data-t="delete_btn">—</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT INVEST -->
+<div class="overlay" id="m-edit-invest">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title"><span data-t="invest_title">—</span><button class="mcls" onclick="closeModal('m-edit-invest')">✕</button></div>
+    <div class="sheet-body">
+      <input type="hidden" id="einv-edit-id">
+      <input type="hidden" id="einv-edit-type"> <!-- stocks or crowd -->
+      <div class="fg"><div class="fl" data-t="name_label">—</div><input class="fi" id="einv-name" data-ph="name_ph"></div>
+      <div class="fg"><div class="fl" data-t="amount_label">—</div><input class="fi" type="number" id="einv-amount" placeholder="0" inputmode="numeric"></div>
+      <div class="fg"><div class="fl" data-t="quantity">—</div><input class="fi" type="number" id="einv-qty" placeholder="1" inputmode="numeric"></div>
+      <div class="fg"><div class="fl" data-t="comment_label">—</div><textarea class="fi" id="einv-comment" rows="2" maxlength="70" data-ph="comment_ph"></textarea></div>
+      <button class="btn-main" onclick="saveInvEntry()" data-t="save_btn">—</button>
+      <button class="btn-del" onclick="delInvEntry()" data-t="delete_btn">—</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- .app -->
 <script>
-// ── LOCALSTORAGE ──────────────────────────────────────────────
-const LS_KEY='finapp_v3';
-function loadState(){
-  try{const d=localStorage.getItem(LS_KEY);if(d)return JSON.parse(d);}catch(e){}
-  return null;
-}
-function saveState(){
-  try{localStorage.setItem(LS_KEY,JSON.stringify(S));}catch(e){}
-}
-
-// ── DEFAULT STATE ─────────────────────────────────────────────
-const defaultState={
-  salary:450000,extra:130000,
-  addType:'inc',invType:'stocks',crType:'crowd',crSt:'active',crdType:'diff',
-  stocks:[
-    {name:'Акции KASE',type:'stocks',buyPrice:850000,qty:1,marketPrice:1010000,monthly:8500,icon:'📈'},
-    {name:'Облигации KZT',type:'bonds',buyPrice:280000,qty:1,marketPrice:300000,monthly:6200,icon:'📋'},
-    {name:'BTC / ETH',type:'crypto',buyPrice:250000,qty:1,marketPrice:280000,monthly:0,icon:'🌐'},
-  ],
-  crowd:[
-    {name:'Кофейня "Урба"',type:'crowd',amount:250000,monthly:4500,pct:72,status:'active',icon:'☕'},
-    {name:'Солнечные панели',type:'crowd',amount:180000,monthly:3800,pct:100,status:'active',icon:'🌞'},
-    {name:'IT-стартап Alatau',type:'angel',amount:500000,monthly:0,pct:35,status:'pending',icon:'💡'},
-  ],
-  credits:[
-    {name:'Ипотека',bank:'Казком Банк',sum:5000000,rate:14.5,totalMonths:240,paid:1400000,type:'diff',icon:'🏠'},
-    {name:'Авто кредит',bank:'Halyk Bank',sum:2750000,rate:18,totalMonths:36,paid:1500000,type:'ann',icon:'🚗'},
-  ],
-  invReturns:[
-    {id:1,src:'Облигации KZT',amount:6200,icon:'📋',confirmed:true},
-    {id:2,src:'Кофейня "Урба"',amount:4500,icon:'☕',confirmed:false},
-    {id:3,src:'Солнечные панели',amount:3800,icon:'🌞',confirmed:false},
-  ],
-  entries:[
-    {type:'exp',name:'Продукты',amount:12000,date:'2026-04-19',cat:'Продукты',icon:'🛒'},
-    {type:'exp',name:'Такси',amount:3500,date:'2026-04-18',cat:'Транспорт',icon:'🚗'},
-    {type:'inc',name:'Фриланс',amount:80000,date:'2026-04-17',cat:'Доход',icon:'💻'},
-    {type:'exp',name:'Netflix',amount:5000,date:'2026-04-15',cat:'Подписки',icon:'📱'},
-    {type:'exp',name:'Аптека',amount:8500,date:'2026-04-14',cat:'Здоровье',icon:'🏥'},
-    {type:'exp',name:'Кафе',amount:6500,date:'2026-04-13',cat:'Кафе',icon:'🍽️'},
-    {type:'inc',name:'Аренда',amount:50000,date:'2026-04-10',cat:'Доход',icon:'🏠'},
-    {type:'exp',name:'Заправка',amount:15000,date:'2026-04-08',cat:'Транспорт',icon:'⛽'},
-  ]
+// ════════════════════════════════════
+// TRANSLATIONS
+// ════════════════════════════════════
+const T={
+  kz:{
+    home_title:'Менің бюджетім',balance_label:'Қолда бар баланс',income_label:'Кіріс',expense_label:'Шығыс',inv_income_label:'Инв.кіріс',credit_label:'Несие',
+    salary_label:'Жалақы',extra_income_label:'Қосымша кіріс',change_btn:'Өзгерту',add_btn:'+ Қосу',analytics_title:'Аналитика',
+    period_month:'Ай',period_week:'Апта',period_day:'Күн',period_year:'Жыл',recent_ops:'Соңғы операциялар',
+    income_title:'Кірістер',confirmed_label:'Расталды',pending_label:'Күтуде',income_sources:'Кіріс көздері',inv_income_title:'Инвест. кіріс',tap_to_confirm:'растау үшін басыңыз',
+    expense_title:'Шығыстар',spent_label:'Жұмсалды',of_income_label:'Кірістен',by_category:'Санаттар бойынша',all_expenses:'Барлық шығыстар',
+    credits_title:'Несиелер',total_debt:'Жалпы қарыз',monthly_payment:'Ай. төлем',active_credits:'Белсенді несиелер',
+    invest_title:'Инвестициялар',market_value:'Нарықтық құн',pnl_label:'П/З',invested_label:'Салынды',monthly_income:'Ай. кіріс',stock_assets:'Биржалық активтер',crowd_title:'Краудфандинг / Бизнес',
+    history_title:'Тарих',all_ops:'Барлық операциялар',filter_all:'Барлығы',filter_inc:'Кіріс',filter_exp:'Шығыс',filter_inv:'Инвестиция',filter_crd:'Несие',
+    nav_home:'Басты',nav_income:'Кіріс',nav_expense:'Шығыс',nav_credits:'Несие',nav_invest:'Инвест.',nav_history:'Тарих',
+    quick_add:'Жылдам қосу',type_label:'Түрі',income_btn:'Кіріс',expense_btn:'Шығыс',name_label:'Атауы',name_ph:'Операция атауы',amount_label:'Сомасы (₸)',date_label:'Күні',save_btn:'Сақтау',
+    category_label:'Санат',other_source:'Дереккөзді көрсетіңіз',other_ph:'Атауын енгізіңіз',comment_label:'Түсініктеме (міндетті емес)',comment_ph:'Түсініктеме...',add_income_btn:'Кіріс қосу',
+    add_expense_btn:'Шығыс қосу',delete_btn:'Жою',add_btn_action:'Қосу',
+    salary_title:'Жалақы',monthly_salary:'Ай сайынғы жалақы (₸)',pay_day:'Төлем күні',
+    extra_income_title:'Қосымша кіріс',
+    new_credit:'Жаңа несие',edit_credit:'Несиені өзгерту',per_year:'жылдық',nav_accounts:'Шоттар',accounts_title:'Менің шоттарым',accounts_sub:'Карталар мен кошельктер',add_account_btn:'+ Шот қосу',total_balance_label:'Жалпы баланс',accounts_count:'Шоттар саны',my_accounts:'Шоттарым',acc_name_label:'Шот атауы',acc_name_ph:'Мысалы: Kaspi Алтын',acc_type_label:'Шот түрі',acc_currency_label:'Валюта',acc_balance_label:'Ағымдағы баланс (₸)',acc_color_label:'Түсі',acc_type_card:'💳 Карта',acc_type_cash:'💵 Қолма-қол',acc_type_deposit:'🏦 Депозит',acc_type_other:'📦 Басқа',acc_label:'Шот / Карта',no_account:'Шотсыз',monthly_payment_input:'Ай сайынғы төлем (₸)',computed_rate:'Есептелген пайыз мөлшері',credit_name:'Атауы / Банк',credit_name_ph:'Ипотека, Halyk Bank...',credit_sum:'Несие сомасы (₸)',credit_rate:'Жылдық пайыз мөлшері %',credit_months:'Мерзім (ай)',credit_type_label:'Несие түрі',diff_type:'Дифференцирленген',ann_type:'Аннуитеттік',credit_paid:'Өтелген сома (₸)',calc_preview:'Алдын ала есеп',monthly_pay:'Ай. төлем',total_pay:'Жалпы төлем',overpay:'Артық төлем',remaining:'Қалдық қарыз',add_credit_btn:'Несие қосу',save_credit_btn:'Өзгерістерді сақтау',
+    currency_label:'Валюта',invest_where:'Қайда салынады',ticker_label:'Тикер (мысалы: KASE, AAPL)',ticker_ph:'Тикер',inv_name_ph:'Kaspi.kz, Bitcoin...',buy_price:'Сатып алу бағасы (1 дана, ₸)',quantity:'Саны (дана)',market_price:'Ағымдағы нарықтық баға (₸)',monthly_div:'Ай. кіріс (дивиденд/купон, ₸)',company_name:'Компания / жоба атауы (70 таңба дейін)',company_ph:'Атауы...',invest_amount:'Салым сомасы (₸)',collect_progress:'Жинақ барысы %',status_label:'Мәртебесі',status_active:'Белсенді',status_pending:'Күту',status_exit:'Шығу',add_invest_btn:'Инвестиция қосу',
+    iw_stocks:'📈 Акциялар',iw_bonds:'📋 Облигациялар',iw_etf:'📊 ETF қор',iw_crypto:'🌐 Криптовалюта',iw_deposit:'🏦 Депозит',
+    cw_crowd:'🤝 Краудфандинг',cw_biz:'🏢 Бизнес жоба',cw_angel:'💡 Бизнес-ангел',
+    cat_it:'💻 IT / Бағдарлама',cat_design:'🎨 Дизайн / Шығармашылық',cat_trade:'🛍️ Сауда / Сату',cat_consult:'🧑‍💼 Кеңес / Оқыту',cat_rent:'🏠 Мүлік жалдау',cat_transport:'🚗 Көлік / Жеткізу',cat_other:'✏️ Басқа',
+    ecat_food:'🛒 Азық-түлік',ecat_transport:'🚗 Көлік',ecat_cafe:'🍽️ Кафе, мейрамхана',ecat_subs:'📱 Жазылымдар',ecat_health:'🏥 Денсаулық',ecat_clothes:'👕 Киім',ecat_entertain:'🎬 Ойын-сауық',ecat_utility:'🏠 ТКШ / Коммуналдық',ecat_other:'💰 Басқа',
+    months:['қаңтар','ақпан','наурыз','сәуір','мамыр','маусым','шілде','тамыз','қыркүйек','қазан','қараша','желтоқсан'],
+    months_full:['Қаңтар','Ақпан','Наурыз','Сәуір','Мамыр','Маусым','Шілде','Тамыз','Қыркүйек','Қазан','Қараша','Желтоқсан'],
+    donut_expense:'Шығыстар',donut_invest:'Инвестициялар',dmode_all:'Жалпы',dmode_exp:'Шығыс санаттары',dmode_inv:'Инвестиция түрлері',
+    confirmed_tag:'Есептелді',pending_tag:'Расталуды күтуде',confirm_btn:'Растау',confirmed_btn:'✓ Алынды',
+    edit_btn:'✏️',change_label:'Өзгерту',
+    paid_pct:'Өтелді',overpay_label:'Артық төлем',first_pay:'(1-ші)',
+    no_items:'Жазбалар жоқ',no_credits:'Несиелер жоқ',no_assets:'Активтер жоқ',no_projects:'Жобалар жоқ',
+    status_active_l:'Белсенді',status_pending_l:'Күту',status_exit_l:'Шығу',
+    diff_label:'Дифференц.',ann_label:'Аннуитет',
+    bought_label:'Сатып алынды',per_month:'/ай',progress_label:'Жинақ барысы',
+    months_short:['Қаң','Ақп','Нау','Сәу','Мам','Мау','Шіл','Там','Қыр','Қаз','Қар','Жел'],
+  },
+  ru:{
+    home_title:'Мой бюджет',balance_label:'Доступный баланс',income_label:'Доходы',expense_label:'Расходы',inv_income_label:'Инв.доход',credit_label:'Кредиты',
+    salary_label:'Зарплата',extra_income_label:'Доп. доход',change_btn:'Изменить',add_btn:'+ Добавить',analytics_title:'Аналитика',
+    period_month:'Месяц',period_week:'Неделя',period_day:'День',period_year:'Год',recent_ops:'Последние операции',
+    income_title:'Доходы',confirmed_label:'Подтверждено',pending_label:'Ожидает',income_sources:'Источники дохода',inv_income_title:'Инвест. доходы',tap_to_confirm:'нажмите — подтвердить',
+    expense_title:'Расходы',spent_label:'Потрачено',of_income_label:'От дохода',by_category:'По категориям',all_expenses:'Все расходы',
+    credits_title:'Кредиты',total_debt:'Общий долг',monthly_payment:'Платёж/мес',active_credits:'Активные кредиты',
+    invest_title:'Инвестиции',market_value:'Рыночная стоимость',pnl_label:'П/У',invested_label:'Вложено',monthly_income:'Доход/мес',stock_assets:'Биржевые активы',crowd_title:'Краудфандинг / Бизнес',
+    history_title:'История',all_ops:'Все операции',filter_all:'Все',filter_inc:'Доходы',filter_exp:'Расходы',filter_inv:'Инвестиции',filter_crd:'Кредиты',
+    nav_home:'Главная',nav_income:'Доходы',nav_expense:'Расходы',nav_credits:'Кредиты',nav_invest:'Инвестиции',nav_history:'История',
+    quick_add:'Быстрое добавление',type_label:'Тип',income_btn:'Доход',expense_btn:'Расход',name_label:'Название',name_ph:'Название операции',amount_label:'Сумма (₸)',date_label:'Дата',save_btn:'Сохранить',
+    category_label:'Категория',other_source:'Укажите источник',other_ph:'Введите название',comment_label:'Комментарий (необязательно)',comment_ph:'Комментарий...',add_income_btn:'Добавить доход',
+    add_expense_btn:'Добавить расход',delete_btn:'Удалить',add_btn_action:'Добавить',
+    salary_title:'Зарплата',monthly_salary:'Ежемесячная зарплата (₸)',pay_day:'День выплаты',
+    extra_income_title:'Доп. доход',
+    new_credit:'Новый кредит',edit_credit:'Редактировать кредит',per_year:'годовых',nav_accounts:'Счета',accounts_title:'Мои счета',accounts_sub:'Карты и кошельки',add_account_btn:'+ Добавить счёт',total_balance_label:'Общий баланс',accounts_count:'Счетов',my_accounts:'Мои счета',acc_name_label:'Название счёта',acc_name_ph:'Например: Kaspi Золотой',acc_type_label:'Тип счёта',acc_currency_label:'Валюта',acc_balance_label:'Текущий баланс (₸)',acc_color_label:'Цвет',acc_type_card:'💳 Карта',acc_type_cash:'💵 Наличные',acc_type_deposit:'🏦 Депозит',acc_type_other:'📦 Другое',acc_label:'Счёт / Карта',no_account:'Без счёта',monthly_payment_input:'Ежемесячный платёж (₸)',computed_rate:'Расчётная процентная ставка',credit_name:'Название / Банк',credit_name_ph:'Ипотека, Halyk Bank...',credit_sum:'Сумма кредита (₸)',credit_rate:'Процентная ставка % годовых',credit_months:'Срок (месяцев)',credit_type_label:'Вид кредита',diff_type:'Дифференцированный',ann_type:'Аннуитетный',credit_paid:'Уже выплачено (₸)',calc_preview:'Предварительный расчёт',monthly_pay:'Ежемес. платёж',total_pay:'Общая сумма',overpay:'Переплата',remaining:'Остаток долга',add_credit_btn:'Добавить кредит',save_credit_btn:'Сохранить изменения',
+    currency_label:'Валюта',invest_where:'Куда вкладываются деньги',ticker_label:'Тикер (например: KASE, AAPL)',ticker_ph:'Тикер',inv_name_ph:'Kaspi.kz, Bitcoin...',buy_price:'Цена покупки (1 шт., ₸)',quantity:'Количество (шт.)',market_price:'Текущая рыночная цена (₸)',monthly_div:'Ежемес. доход (дивиденды/купон, ₸)',company_name:'Название компании / проекта (до 70 символов)',company_ph:'Название...',invest_amount:'Сумма вложений (₸)',collect_progress:'Прогресс сбора %',status_label:'Статус',status_active:'Активный',status_pending:'Ожидание',status_exit:'Выход',add_invest_btn:'Добавить инвестицию',
+    iw_stocks:'📈 Акции',iw_bonds:'📋 Облигации',iw_etf:'📊 ETF фонд',iw_crypto:'🌐 Криптовалюта',iw_deposit:'🏦 Депозит',
+    cw_crowd:'🤝 Краудфандинг',cw_biz:'🏢 Бизнес проект',cw_angel:'💡 Бизнес-ангел',
+    cat_it:'💻 Программирование / IT',cat_design:'🎨 Дизайн / Творчество',cat_trade:'🛍️ Торговля / Продажи',cat_consult:'🧑‍💼 Консультации / Обучение',cat_rent:'🏠 Аренда имущества',cat_transport:'🚗 Транспорт / Доставка',cat_other:'✏️ Другое',
+    ecat_food:'🛒 Продукты',ecat_transport:'🚗 Транспорт',ecat_cafe:'🍽️ Кафе и рестораны',ecat_subs:'📱 Подписки',ecat_health:'🏥 Здоровье',ecat_clothes:'👕 Одежда',ecat_entertain:'🎬 Развлечения',ecat_utility:'🏠 ЖКХ / Коммуналка',ecat_other:'💰 Прочее',
+    months:['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'],
+    months_full:['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'],
+    donut_expense:'Расходы',donut_invest:'Инвестиции',dmode_all:'Общий',dmode_exp:'Категории расходов',dmode_inv:'Типы инвестиций',
+    confirmed_tag:'Зачислено',pending_tag:'Ожидает подтверждения',confirm_btn:'Подтвердить',confirmed_btn:'✓ Получено',
+    edit_btn:'✏️',change_label:'Изменить',
+    paid_pct:'Выплачено',overpay_label:'Переплата',first_pay:'(1-й)',
+    no_items:'Нет записей',no_credits:'Нет кредитов',no_assets:'Нет активов',no_projects:'Нет проектов',
+    status_active_l:'Активный',status_pending_l:'Ожидание',status_exit_l:'Выход',
+    diff_label:'Дифференц.',ann_label:'Аннуитет',
+    bought_label:'Куплено',per_month:'/мес',progress_label:'Прогресс',
+    months_short:['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'],
+  }
 };
 
-let S=loadState()||JSON.parse(JSON.stringify(defaultState));
-let currentPeriod='month';
+// ════════════════════════════════════
+// DATABASE  (localStorage, по месяцам)
+// ════════════════════════════════════
+const DB_KEY='jinau_db_v1';
+const META_KEY='jinau_meta_v1';
+
+function dbLoad(){
+  try{const d=localStorage.getItem(DB_KEY);return d?JSON.parse(d):{};}catch(e){return {};}
+}
+function dbSave(db){
+  try{localStorage.setItem(DB_KEY,JSON.stringify(db));}catch(e){}
+}
+function metaLoad(){
+  try{const d=localStorage.getItem(META_KEY);return d?JSON.parse(d):null;}catch(e){return null;}
+}
+function metaSave(m){
+  try{localStorage.setItem(META_KEY,JSON.stringify(m));}catch(e){}
+}
+
+// monthKey = "2026-04"
+function monthKey(date){return date.slice(0,7);}
+function todayStr(){return new Date().toISOString().split('T')[0];}
+function currentMonthKey(){return todayStr().slice(0,7);}
+
+// Get or create month bucket
+function getMonth(db,mk){
+  if(!db[mk])db[mk]={entries:[],credits:[],stocks:[],crowd:[],invReturns:[],salary:0,extra:0};
+  return db[mk];
+}
+
+// ════════════════════════════════════
+// GLOBAL STATE (meta + current view)
+// ════════════════════════════════════
+let DB=dbLoad();
+let META=metaLoad()||{lang:'kz',salary:450000,extra:0,crdType:'diff',crSt:'active',qaType:'inc',credits:[],stocks:[],crowd:[],invReturns:[]};
+// credits/stocks/crowd/invReturns live in META (persistent across months)
+// entries live in DB per month
+
+// Ensure accounts array exists
+if(!META.accounts)META.accounts=[];
+let S=META; // alias
 let histFilter='all';
+let viewMonth=currentMonthKey(); // which month History shows
+let nid=Date.now();
+function uid(){return ++nid;}
+function t(key){return T[S.lang][key]||T.ru[key]||key;}
+function saveAll(){metaSave(META);dbSave(DB);}
 
-// ── HELPERS ───────────────────────────────────────────────────
-const fmt=n=>Math.round(n).toLocaleString('ru-RU')+' ₸';
-const fmtShort=n=>{if(n>=1000000)return (n/1000000).toFixed(1)+'М ₸';if(n>=1000)return Math.round(n/1000)+'К ₸';return Math.round(n)+' ₸';}
-const months=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
-const monthsShort=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
-const now=new Date();
-const typeIcons={stocks:'📈',bonds:'📋',etf:'📊',crypto:'🌐',crowd:'🤝',biz:'🏢',angel:'💡'};
-const typeLbls={stocks:'Акции',bonds:'Облигации',etf:'ETF',crypto:'Крипто',crowd:'Краудфандинг',biz:'Бизнес',angel:'Бизнес-ангел'};
-const stColors={active:{bg:'var(--gb)',c:'var(--g)'},pending:{bg:'var(--gyb)',c:'var(--gy)'},exit:{bg:'var(--bb)',c:'var(--b)'}};
-const catIcons={'Продукты':'🛒','Транспорт':'🚗','Кафе':'🍽️','Подписки':'📱','Здоровье':'🏥','Одежда':'👕','Развлечения':'🎬','Прочее':'💰','Доход':'💵'};
+// Ensure current month bucket exists
+function ensureMonth(mk){getMonth(DB,mk);}
+ensureMonth(currentMonthKey());
 
-function dateStr(d){const dt=new Date(d);return dt.getDate()+' '+months[dt.getMonth()];}
+// ════════════════════════════════════
+// CURRENT MONTH DATA
+// ════════════════════════════════════
+function curEntries(){return getMonth(DB,currentMonthKey()).entries;}
+function monthEntries(mk){return getMonth(DB,mk).entries;}
 
-// ── CREDIT CALCULATIONS ───────────────────────────────────────
-function calcMonthlyDiff(sum,rate,months,paidSum){
-  const rem=sum-paidSum;
-  const monthRate=rate/100/12;
-  const paidMonths=Math.floor(paidSum/( sum/months ));
-  const remMonths=months-paidMonths;
-  const firstPayment=(sum/months)+(rem*monthRate);
-  return {monthly:Math.round(firstPayment),totalPay:Math.round(rem+rem*monthRate*remMonths/2),overpay:Math.round(rem*monthRate*remMonths/2),remain:Math.round(rem),remMonths};
-}
-function calcMonthlyAnn(sum,rate,months,paidSum){
-  const monthRate=rate/100/12;
-  const ann=monthRate===0?sum/months:sum*monthRate*Math.pow(1+monthRate,months)/(Math.pow(1+monthRate,months)-1);
-  const rem=sum-paidSum;
-  const paidMonths=Math.round(paidSum/ann);
-  const remMonths=Math.max(0,months-paidMonths);
-  const totalRem=ann*remMonths;
-  return {monthly:Math.round(ann),totalPay:Math.round(totalRem),overpay:Math.round(totalRem-rem),remain:Math.round(rem),remMonths};
-}
-function getCreditCalc(c){
-  return c.type==='diff'?calcMonthlyDiff(c.sum,c.rate,c.totalMonths,c.paid):calcMonthlyAnn(c.sum,c.rate,c.totalMonths,c.paid);
+// Sync salary into current month snapshot
+function syncSalary(){
+  const mk=currentMonthKey();
+  getMonth(DB,mk).salary=S.salary;
+  getMonth(DB,mk).extra=S.extra;
 }
 
+// ════════════════════════════════════
+// LANG
+// ════════════════════════════════════
+let selectedLang='kz';
+function selectLang(lang){
+  selectedLang=lang;
+  document.getElementById('btn-kz').className='lang-btn'+(lang==='kz'?' selected':'');
+  document.getElementById('btn-ru').className='lang-btn'+(lang==='ru'?' selected':'');
+  document.getElementById('lang-start-btn').textContent=lang==='kz'?'Бастау':'Начать';
+}
+function startApp(){
+  S.lang=selectedLang;
+  document.getElementById('lang-screen').classList.add('hidden');
+  applyLang();render();updateFlagUI();saveAll();
+}
+function applyLang(){
+  const L=T[S.lang];
+  document.querySelectorAll('[data-t]').forEach(el=>{const k=el.getAttribute('data-t');if(L[k])el.textContent=L[k];});
+  document.querySelectorAll('[data-ph]').forEach(el=>{const k=el.getAttribute('data-ph');if(L[k])el.placeholder=L[k];});
+  document.querySelectorAll('[data-t-opt]').forEach(el=>{const k=el.getAttribute('data-t-opt');if(L[k])el.textContent=L[k];});
+}
+
+// ════════════════════════════════════
+// CREDIT CALC
+// ════════════════════════════════════
+function calcDiff(sum,rate,months,paid){
+  const rem=Math.max(0,sum-paid);const mr=rate/100/12;
+  const paidMo=Math.min(months,Math.floor(paid/Math.max(1,sum/months)));const remMo=Math.max(0,months-paidMo);
+  const fp=Math.round(sum/months+rem*mr);const op=Math.round(rem*mr*remMo/2);
+  return{monthly:fp,totalPay:Math.round(rem+op),overpay:op,remain:Math.round(rem),remMonths:remMo};
+}
+function calcAnn(sum,rate,months,paid){
+  const mr=rate/100/12;
+  const ann=mr===0?Math.round(sum/months):Math.round(sum*mr*Math.pow(1+mr,months)/(Math.pow(1+mr,months)-1));
+  const rem=Math.max(0,sum-paid);const paidMo=Math.min(months,Math.round(paid/Math.max(1,ann)));const remMo=Math.max(0,months-paidMo);
+  const tr=ann*remMo;
+  return{monthly:ann,totalPay:Math.round(tr),overpay:Math.round(Math.max(0,tr-rem)),remain:Math.round(rem),remMonths:remMo};
+}
+function getCrdCalc(c){
+  const r=c.rate||0;
+  if(r===0&&c.payment){
+    // Use stored payment directly
+    const mo=c.totalMonths,rem=Math.max(0,c.sum-c.paid);
+    const paidMo=Math.min(mo,Math.round((c.sum-rem)/(c.sum/mo||1)));
+    const remMo=Math.max(0,mo-paidMo);
+    const totalRem=c.payment*remMo;
+    return{monthly:c.payment,totalPay:Math.round(totalRem),overpay:Math.round(Math.max(0,totalRem-rem)),remain:Math.round(rem),remMonths:remMo};
+  }
+  return c.type==='diff'?calcDiff(c.sum,r,c.totalMonths,c.paid):calcAnn(c.sum,r,c.totalMonths,c.paid);
+}
 function calcCredit(){
   const sum=parseFloat(document.getElementById('crd-sum').value)||0;
-  const rate=parseFloat(document.getElementById('crd-rate').value)||0;
+  const payment=parseFloat(document.getElementById('crd-payment').value)||0;
   const mo=parseFloat(document.getElementById('crd-months').value)||0;
   const paid=parseFloat(document.getElementById('crd-paid').value)||0;
   const prev=document.getElementById('crd-preview');
-  if(!sum||!rate||!mo){prev.style.display='none';return;}
+  if(!sum||!mo||!payment){prev.style.display='none';return;}
   prev.style.display='block';
-  const calc=S.crdType==='diff'?calcMonthlyDiff(sum,rate,mo,paid):calcMonthlyAnn(sum,rate,mo,paid);
-  document.getElementById('calc-monthly').textContent=fmt(calc.monthly)+(S.crdType==='diff'?' (первый)':'');
-  document.getElementById('calc-total').textContent=fmt(calc.totalPay);
-  document.getElementById('calc-over').textContent=fmt(calc.overpay);
-  document.getElementById('calc-remain').textContent=fmt(calc.remain);
+  // Compute rate from payment using Newton's method (annuity) or direct (diff)
+  let computedRate=0;
+  if(S.crdType==='ann'){
+    // Solve: payment = sum * r*(1+r)^n / ((1+r)^n - 1) for r
+    let r=0.01;
+    for(let i=0;i<100;i++){
+      const pr=Math.pow(1+r,mo);
+      const f=sum*r*pr/(pr-1)-payment;
+      const df=sum*(pr*(1+mo*r)-1)/Math.pow(pr-1,2)*1; // approx
+      const rn=r-f/(df||1);
+      if(Math.abs(rn-r)<1e-8)break;
+      r=Math.max(0,rn);
+    }
+    computedRate=r*12*100;
+  }else{
+    // diff: first payment = sum/mo + sum*r => r = (payment - sum/mo)/sum
+    const r=(payment-sum/mo)/sum;
+    computedRate=Math.max(0,r*12*100);
+  }
+  const c=S.crdType==='diff'?calcDiff(sum,computedRate,mo,paid):calcAnn(sum,computedRate,mo,paid);
+  document.getElementById('calc-monthly').textContent=fmt(payment);
+  document.getElementById('calc-total').textContent=fmt(payment*mo);
+  document.getElementById('calc-over').textContent=fmt(Math.max(0,payment*mo-sum));
+  document.getElementById('calc-remain').textContent=fmt(Math.max(0,sum-paid));
+  const rateEl=document.getElementById('calc-rate-computed');
+  if(rateEl)rateEl.textContent=computedRate.toFixed(2)+'% '+t('per_year')||'% годовых';
+  // Store computed rate for saving
+  S._computedRate=computedRate;
 }
 
-// ── TOTALS ────────────────────────────────────────────────────
-function confirmedRet(){return S.invReturns.filter(r=>r.confirmed).reduce((s,r)=>s+r.amount,0);}
-function pendingRet(){return S.invReturns.filter(r=>!r.confirmed).reduce((s,r)=>s+r.amount,0);}
-function totalIncome(){return S.salary+S.extra+confirmedRet();}
-function totalExpenses(){return S.entries.filter(e=>e.type==='exp').reduce((s,e)=>s+e.amount,0);}
-function totalCreditMonthly(){return S.credits.reduce((s,c)=>s+getCreditCalc(c).monthly,0);}
-function totalCreditDebt(){return S.credits.reduce((s,c)=>s+getCreditCalc(c).remain,0);}
-function invMarket(){return S.stocks.reduce((s,x)=>s+x.marketPrice*x.qty,0)+S.crowd.reduce((s,x)=>s+x.amount,0);}
-function invCost(){return S.stocks.reduce((s,x)=>s+x.buyPrice*x.qty,0)+S.crowd.reduce((s,x)=>s+x.amount,0);}
-function invMonthly(){return S.stocks.reduce((s,x)=>s+x.monthly,0)+S.crowd.reduce((s,x)=>s+x.monthly,0);}
+// ════════════════════════════════════
+// TOTALS
+// ════════════════════════════════════
+const fmt=n=>Math.round(n).toLocaleString('ru-RU')+' ₸';
+const fmtS=n=>{const a=Math.abs(n);if(a>=1000000)return (n/1000000).toFixed(1)+'М ₸';if(a>=1000)return Math.round(n/1000)+'К ₸';return Math.round(n)+' ₸';};
+function confRet(){return S.invReturns.filter(r=>r.confirmed).reduce((s,r)=>s+r.amount,0);}
+function pendRet(){return S.invReturns.filter(r=>!r.confirmed).reduce((s,r)=>s+r.amount,0);}
+function totalInc(){return S.salary+S.extra+confRet();}
+function totalExp(){return curEntries().filter(e=>e.type==='exp').reduce((s,e)=>s+e.amount,0);}
+function totalCrdMo(){return S.credits.reduce((s,c)=>s+getCrdCalc(c).monthly,0);}
+function totalCrdDebt(){return S.credits.reduce((s,c)=>s+getCrdCalc(c).remain,0);}
+function invMarket(){return S.stocks.reduce((s,x)=>s+x.marketPrice*x.qty,0)+S.crowd.reduce((s,x)=>s+x.buyPrice*(x.qty||1),0);}
+function invCost(){return S.stocks.reduce((s,x)=>s+x.buyPrice*x.qty,0)+S.crowd.reduce((s,x)=>s+x.buyPrice*(x.qty||1),0);}
+function invMo(){return S.stocks.reduce((s,x)=>s+x.monthly,0)+S.crowd.reduce((s,x)=>s+x.monthly,0);}
 
-function periodMult(){return {day:1/30,week:7/30,month:1,year:12}[currentPeriod]||1;}
+const CAT_ICON={'Азық':'🛒','Продукты':'🛒','Көлік':'🚗','Транспорт':'🚗','Кафе':'🍽️','Жазылым':'📱','Подписки':'📱','Денсаулық':'🏥','Здоровье':'🏥','Киім':'👕','Одежда':'👕','Ойын-сауық':'🎬','Развлечения':'🎬','ТКШ':'🏠','ЖКХ':'🏠','Басқа':'💰','Прочее':'💰','IT':'💻','Дизайн':'🎨','Сауда':'🛍️','Торговля':'🛍️','Кеңес':'🧑‍💼','Консультации':'🧑‍💼','Жалдау':'🏠','Аренда':'🏠','Другое':'✏️'};
+function catIcon(cat){return CAT_ICON[cat]||'💰';}
+function dStr(d){const dt=new Date(d);return dt.getDate()+' '+T[S.lang].months[dt.getMonth()];}
 
-// ── RENDER ────────────────────────────────────────────────────
+// ════════════════════════════════════
+// DONUT
+// ════════════════════════════════════
+let donutMode='all';
+function setDonutMode(mode,btn){
+  donutMode=mode;
+  document.querySelectorAll('#dmode-all,#dmode-exp,#dmode-inv').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  drawDonut();
+}
+function drawDonut(){
+  const canvas=document.getElementById('donut-canvas');
+  const ctx=canvas.getContext('2d');
+  const dpr=window.devicePixelRatio||1,sz=130;
+  canvas.width=sz*dpr;canvas.height=sz*dpr;canvas.style.width=sz+'px';canvas.style.height=sz+'px';
+  ctx.scale(dpr,dpr);
+  const cx=sz/2,cy=sz/2,r=52,inner=34;
+  const COLORS=['#c0392b','#c8960c','#0e7a78','#1565a8','#1a8c5a','#7d3c98','#e67e22','#2980b9'];
+  let segs=[];
+  if(donutMode==='all'){
+    const te=totalExp(),ti=invCost();
+    segs=[{label:t('donut_expense'),val:te,color:'#c0392b'},{label:t('donut_invest'),val:ti,color:'#0e7a78'}];
+  }else if(donutMode==='exp'){
+    const cats={};
+    curEntries().filter(e=>e.type==='exp').forEach(e=>{cats[e.cat]=(cats[e.cat]||0)+e.amount;});
+    segs=Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([cat,val],i)=>({label:cat,val,color:COLORS[i%COLORS.length]}));
+  }else if(donutMode==='inv'){
+    const invTypes={};
+    S.stocks.forEach(s=>{const k=s.where||'—';invTypes[k]=(invTypes[k]||0)+s.buyPrice*s.qty;});
+    S.crowd.forEach(c=>{const k=c.where||'—';invTypes[k]=(invTypes[k]||0)+c.buyPrice*(c.qty||1);});
+    segs=Object.entries(invTypes).sort((a,b)=>b[1]-a[1]).map(([label,val],i)=>({label,val,color:COLORS[i%COLORS.length]}));
+  }
+  const total=segs.reduce((s,x)=>s+x.val,0)||1;
+  let sa=-Math.PI/2;
+  ctx.clearRect(0,0,sz,sz);
+  segs.forEach(seg=>{
+    if(!seg.val)return;
+    const sl=(seg.val/total)*Math.PI*2;
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,sa,sa+sl);ctx.closePath();
+    ctx.fillStyle=seg.color;ctx.fill();sa+=sl;
+  });
+  ctx.beginPath();ctx.arc(cx,cy,inner,0,Math.PI*2);ctx.fillStyle='#ffffff';ctx.fill();
+  ctx.fillStyle='#1a2e2e';ctx.font='800 11px -apple-system,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(fmtS(total),cx,cy);
+  const lg=document.getElementById('donut-legend');
+  lg.innerHTML=segs.filter(s=>s.val>0).map(s=>{
+    const pct=Math.round(s.val/total*100);
+    return `<div class="dl-item"><div class="dl-dot" style="background:${s.color}"></div><div><div class="dl-name">${s.label}</div><div class="dl-val" style="color:${s.color}">${fmtS(s.val)} <span style="color:var(--txt2);font-size:11px">${pct}%</span></div></div></div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════
+// MONTH BAR (History)
+// ════════════════════════════════════
+function buildMonthBar(){
+  const bar=document.getElementById('month-bar');
+  const keys=Object.keys(DB).sort().reverse();
+  const cur=currentMonthKey();
+  if(!keys.includes(cur))keys.unshift(cur);
+  bar.innerHTML=keys.map(mk=>{
+    const[y,m]=mk.split('-');
+    const label=T[S.lang].months_short[parseInt(m)-1]+' '+y;
+    return `<button class="msbtn ${mk===viewMonth?'active':''}" onclick="setViewMonth('${mk}',this)">${label}</button>`;
+  }).join('');
+}
+function setViewMonth(mk,btn){
+  viewMonth=mk;
+  document.querySelectorAll('.msbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  rHist();
+}
+
+// ════════════════════════════════════
+// RENDER
+// ════════════════════════════════════
 function render(){
-  const ti=totalIncome(),te=totalExpenses(),cm=totalCreditMonthly(),cr=confirmedRet(),pr=pendingRet();
   const now=new Date();
-  document.getElementById('h-date').textContent=now.getDate()+' '+months[now.getMonth()]+' '+now.getFullYear();
-  document.getElementById('h-month').textContent=monthsShort[now.getMonth()];
-  document.getElementById('inc-date').textContent=monthsShort[now.getMonth()]+' '+now.getFullYear();
+  const L=T[S.lang];
+  const ti=totalInc(),te=totalExp(),cm=totalCrdMo(),cr=confRet(),pr=pendRet();
+  document.getElementById('h-date').textContent=now.getDate()+' '+L.months[now.getMonth()]+' '+now.getFullYear();
+  // h-month replaced by flag switcher
+  ['inc-date','exp-date','crd-date','inv-date'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=L.months_full[now.getMonth()]+' '+now.getFullYear();});
   document.getElementById('h-bal').textContent=fmt(ti-te-cm);
-  document.getElementById('h-inc').textContent=fmtShort(S.salary+S.extra);
-  document.getElementById('h-exp').textContent=fmtShort(te);
-  document.getElementById('h-invret').textContent=fmtShort(cr);
-  document.getElementById('h-crd').textContent=fmtShort(cm);
+  document.getElementById('h-inc').textContent=fmtS(S.salary+S.extra);
+  document.getElementById('h-exp').textContent=fmtS(te);
+  document.getElementById('h-invret').textContent=fmtS(cr);
+  document.getElementById('h-crd').textContent=fmtS(cm);
   document.getElementById('h-sal').textContent=fmt(S.salary);
   document.getElementById('h-ext').textContent=fmt(S.extra);
   document.getElementById('inc-conf').textContent=fmt(ti);
   document.getElementById('inc-pend').textContent=fmt(pr);
   document.getElementById('exp-total').textContent=fmt(te);
   document.getElementById('exp-pct').textContent=ti>0?(te/ti*100).toFixed(1)+'%':'—';
-  document.getElementById('crd-total').textContent=fmt(totalCreditDebt());
-  document.getElementById('crd-monthly').textContent=fmt(totalCreditMonthly());
+  document.getElementById('crd-total').textContent=fmt(totalCrdDebt());
+  document.getElementById('crd-monthly').textContent=fmt(cm);
   const mkt=invMarket(),cost=invCost(),pnl=mkt-cost;
   document.getElementById('inv-market').textContent=fmt(mkt);
   document.getElementById('inv-cost').textContent=fmt(cost);
   document.getElementById('inv-pnl').textContent=(pnl>=0?'+':'')+fmt(pnl);
-  document.getElementById('inv-pnl').style.color=pnl>=0?'var(--g)':'var(--r)';
-  document.getElementById('inv-monthly').textContent=fmt(invMonthly());
-  const m=periodMult();
-  document.getElementById('a-exp').textContent=fmtShort(te*m);
-  document.getElementById('a-crd').textContent=fmtShort(cm*m);
-  document.getElementById('a-inv').textContent=fmtShort(invMarket());
-  document.getElementById('a-sav').textContent=fmtShort(Math.max(0,ti-te-cm)*m);
-  renderTx();renderIncBase();renderIncInv();renderCredits();renderStocks();renderCrowd();
-  renderExpCats();renderExpHist();renderHistList();renderChart();
-  saveState();
+  document.getElementById('inv-pnl').style.color=pnl>=0?'var(--gd)':'var(--r)';
+  document.getElementById('inv-monthly').textContent=fmt(invMo());
+  rTx();rIncBase();rIncInv();rExpCats();rExpHist();rCredits();rStocks();rCrowd();buildMonthBar();rHist();drawDonut();rAccounts();populateAccountSelects();
+  saveAll();
 }
 
-function renderTx(){
+function rTx(){
   const el=document.getElementById('h-txlist');
-  const items=[...S.entries].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,6);
+  const items=[...curEntries()].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);
+  if(!items.length){el.innerHTML=`<div class="empty">${t('no_items')}</div>`;return;}
   el.innerHTML=items.map(e=>{
-    const bg=e.type==='inc'?'var(--gb)':'var(--rb)';
-    const ac=e.type==='inc'?'var(--g)':'var(--r)';
-    const sg=e.type==='inc'?'+':'-';
-    return `<div class="txr"><div class="ico" style="background:${bg}">${e.icon||catIcons[e.cat]||'💰'}</div><div class="txi"><div class="txn">${e.name}</div><div class="txc">${dateStr(e.date)} · ${e.cat}</div></div><div class="txa" style="color:${ac}">${sg}${fmt(e.amount)}</div></div>`;
+    const isI=e.type==='inc';
+    return `<div class="txr"><div class="ico" style="background:${isI?'var(--gb)':'var(--rb)'}">${e.icon||catIcon(e.cat)}</div><div class="txi"><div class="txn">${e.name}</div><div class="txc">${dStr(e.date)} · ${e.cat}</div></div><div class="txa" style="color:${isI?'var(--gd)':'var(--r)'}">${isI?'+':'-'}${fmt(e.amount)}</div></div>`;
   }).join('');
 }
 
-function renderIncBase(){
+function rIncBase(){
   const el=document.getElementById('inc-base-list');
-  const items=[
-    {name:'Зарплата',icon:'💼',amount:S.salary,cat:'Основной доход'},
-    ...S.entries.filter(e=>e.type==='inc').map(e=>({name:e.name,icon:e.icon||'💵',amount:e.amount,cat:'Доп. доход'}))
-  ];
-  el.innerHTML=items.map(i=>`<div class="txr"><div class="ico" style="background:var(--gb)">${i.icon}</div><div class="txi"><div class="txn">${i.name}</div><div class="txc">${i.cat}</div></div><div class="txa" style="color:var(--g)">+${fmt(i.amount)}</div></div>`).join('');
+  const incEntries=curEntries().filter(e=>e.type==='inc');
+  const salAcc=S.accounts.find(a=>a.id==S.salaryAccountId);
+  const items=[{name:t('salary_label'),icon:'💼',amount:S.salary,cat:t('salary_label'),id:null,isSalary:true,accountName:salAcc?salAcc.name:''},...incEntries.map(e=>{const acc=S.accounts.find(a=>a.id==e.accountId);return{name:e.name,icon:e.icon||catIcon(e.cat),amount:e.amount,cat:e.cat,id:e.id,isSalary:false,accountName:acc?acc.name:''};})];
+  el.innerHTML=items.map(i=>`<div class="txr"><div class="ico" style="background:var(--gb)">${i.icon}</div><div class="txi"><div class="txn">${i.name}</div><div class="txc">${i.cat}${i.accountName?' · 💳 '+i.accountName:''}</div></div><div style="display:flex;align-items:center;gap:8px"><div class="txa" style="color:var(--gd)">+${fmt(i.amount)}</div>${i.isSalary?`<button class="edit-btn" onclick="openEditSalary()">${t('edit_btn')}</button>`:(i.id?`<button class="edit-btn" onclick="openEditIncEntry(${i.id})">${t('edit_btn')}</button>`:'')}</div></div>`).join('');
 }
 
-function renderIncInv(){
+function rIncInv(){
   const el=document.getElementById('inc-inv-list');
-  el.innerHTML=S.invReturns.map(r=>{
-    const c=r.confirmed;
-    return `<div class="pend-row ${c?'confirmed':''}">
-      <div class="ico" style="background:${c?'rgba(59,109,17,0.15)':'var(--bg3)'}">${r.icon}</div>
-      <div class="txi"><div class="txn" style="color:${c?'var(--g)':'var(--txt2)'}">${r.src}</div><div class="txc">${c?'Зачислено в доход':'Ожидает подтверждения'}</div></div>
-      <div style="font-size:14px;font-weight:700;color:${c?'var(--g)':'var(--gy)'};margin-right:8px">+${fmt(r.amount)}</div>
-      <button class="confirm-btn" onclick="toggleConfirm(${r.id})">${c?'✓ Получено':'Подтвердить'}</button>
-    </div>`;
-  }).join('');
+  if(!S.invReturns.length){el.innerHTML=`<div class="empty">${t('no_items')}</div>`;return;}
+  el.innerHTML=S.invReturns.map(r=>`
+    <div class="conf-row ${r.confirmed?'confirmed':''}">
+      <div class="ico" style="background:${r.confirmed?'rgba(26,140,90,.12)':'var(--bg)'}">${r.icon}</div>
+      <div class="txi"><div class="txn" style="color:${r.confirmed?'var(--gd)':'var(--txt2)'}">${r.src}</div><div class="txc">${r.confirmed?t('confirmed_tag'):t('pending_tag')}</div></div>
+      <div style="font-size:14px;font-weight:800;color:${r.confirmed?'var(--gd)':'var(--gy)'};margin-right:6px">+${fmt(r.amount)}</div>
+      <button class="conf-btn" onclick="toggleConf(${r.id})">${r.confirmed?t('confirmed_btn'):t('confirm_btn')}</button>
+    </div>`).join('');
+}
+function toggleConf(id){const r=S.invReturns.find(x=>x.id===id);if(r){r.confirmed=!r.confirmed;render();}}
+
+function rExpCats(){
+  const el=document.getElementById('exp-cats');
+  const cats={};
+  curEntries().filter(e=>e.type==='exp').forEach(e=>{cats[e.cat]=(cats[e.cat]||0)+e.amount;});
+  const total=Object.values(cats).reduce((s,v)=>s+v,0)||1;
+  const colors=['#c0392b','#c8960c','#0e7a78','#1565a8','#1a8c5a','#7d3c98'];
+  el.innerHTML=Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([cat,amt],i)=>`
+    <div class="card" style="padding:12px;margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <div style="display:flex;align-items:center;gap:8px"><span style="font-size:18px">${catIcon(cat)}</span><span style="font-size:14px;font-weight:700;color:var(--txt)">${cat}</span></div>
+        <div style="text-align:right"><div style="font-size:14px;font-weight:800;color:var(--r)">${fmt(amt)}</div><div style="font-size:11px;color:var(--txt2)">${(amt/total*100).toFixed(1)}%</div></div>
+      </div>
+      <div class="pg"><div class="pb" style="width:${(amt/total*100).toFixed(0)}%;background:${colors[i%colors.length]}"></div></div>
+    </div>`).join('')||`<div class="empty">${t('no_items')}</div>`;
 }
 
-function toggleConfirm(id){const r=S.invReturns.find(x=>x.id===id);if(r){r.confirmed=!r.confirmed;render();}}
+function rExpHist(){
+  const el=document.getElementById('exp-hist');
+  const items=[...curEntries()].filter(e=>e.type==='exp').sort((a,b)=>b.date.localeCompare(a.date));
+  if(!items.length){el.innerHTML=`<div class="empty">${t('no_items')}</div>`;return;}
+  el.innerHTML=items.map(e=>`<div class="txr"><div class="ico" style="background:var(--rb)">${e.icon||catIcon(e.cat)}</div><div class="txi"><div class="txn">${e.name}</div><div class="txc">${dStr(e.date)} · ${e.cat}</div></div><div style="display:flex;align-items:center;gap:8px"><div class="txa" style="color:var(--r)">-${fmt(e.amount)}</div><button class="edit-btn" style="background:var(--rb);color:var(--r)" onclick="editExp(${e.id})">${t('edit_btn')}</button></div></div>`).join('');
+}
 
-function renderCredits(){
+function rCredits(){
   const el=document.getElementById('crd-list');
-  el.innerHTML=S.credits.map((c,idx)=>{
-    const calc=getCreditCalc(c);
-    const progPct=Math.round((c.paid/c.sum)*100);
-    const remYears=Math.floor(calc.remMonths/12);
-    const remMo=calc.remMonths%12;
-    const remStr=remYears>0?remYears+'л '+(remMo>0?remMo+'м':''):remMo+'м';
-    const typeLbl=c.type==='diff'?'Дифференцированный':'Аннуитетный';
-    const typeColor=c.type==='diff'?'var(--pb);color:var(--p)':'var(--ab);color:var(--a)';
-    const riskColor=progPct<30?'var(--rb);color:var(--r)':progPct<60?'var(--ab);color:var(--a)':'var(--gb);color:var(--g)';
-    return `<div class="card2">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
-        <div style="display:flex;gap:10px;align-items:center">
-          <div class="ico" style="background:var(--rb)">${c.icon||'🏦'}</div>
-          <div><div style="font-size:16px;font-weight:700;color:var(--txt)">${c.name}</div><div style="font-size:12px;color:var(--txt2)">${c.bank||''}</div></div>
-        </div>
-        <div style="text-align:right">
-          <span class="pill" style="background:${typeColor};font-size:11px">${typeLbl}</span>
-        </div>
+  if(!S.credits.length){el.innerHTML=`<div class="empty">${t('no_credits')}</div>`;return;}
+  el.innerHTML=S.credits.map(c=>{
+    const calc=getCrdCalc(c);const pct=Math.round(c.paid/c.sum*100);
+    const ry=Math.floor(calc.remMonths/12),rm=calc.remMonths%12;
+    const remStr=ry>0?ry+(S.lang==='kz'?'ж ':', л ')+(rm>0?rm+(S.lang==='kz'?'ай':'м'):''):rm+(S.lang==='kz'?' ай':'м');
+    return `<div class="card" style="padding:14px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+        <div><div style="font-size:16px;font-weight:800;color:var(--teal)">${c.name}</div><div style="font-size:12px;color:var(--txt2)">${c.bank||''} · ${c.type==='diff'?t('diff_label'):t('ann_label')}</div></div>
+        <button class="edit-btn" onclick="editCredit(${c.id})">${t('change_label')}</button>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px">
-        <div style="background:var(--bg2);border-radius:10px;padding:10px"><div style="font-size:11px;color:var(--txt2)">Ежемес. платёж</div><div style="font-size:15px;font-weight:700;color:var(--p)">${fmt(calc.monthly)}${c.type==='diff'?' *':''}</div></div>
-        <div style="background:var(--bg2);border-radius:10px;padding:10px"><div style="font-size:11px;color:var(--txt2)">Остаток долга</div><div style="font-size:15px;font-weight:700;color:var(--r)">${fmt(calc.remain)}</div></div>
-        <div style="background:var(--bg2);border-radius:10px;padding:10px"><div style="font-size:11px;color:var(--txt2)">Ставка</div><div style="font-size:15px;font-weight:700;color:var(--txt)">${c.rate}%</div></div>
-        <div style="background:var(--bg2);border-radius:10px;padding:10px"><div style="font-size:11px;color:var(--txt2)">Срок осталось</div><div style="font-size:15px;font-weight:700;color:var(--txt)">${remStr}</div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+        <div style="background:var(--teal-light);border-radius:10px;padding:10px"><div style="font-size:11px;color:var(--teal);font-weight:600">${t('monthly_pay')}</div><div style="font-size:15px;font-weight:800;color:var(--teal)">${fmt(calc.monthly)}</div></div>
+        <div style="background:var(--rb);border-radius:10px;padding:10px"><div style="font-size:11px;color:var(--r);font-weight:600">${t('remaining')}</div><div style="font-size:15px;font-weight:800;color:var(--r)">${fmt(calc.remain)}</div></div>
+        <div style="background:var(--bg);border-radius:10px;padding:10px"><div style="font-size:11px;color:var(--txt2)">${t('credit_rate')}</div><div style="font-size:15px;font-weight:800">${c.rate}%</div></div>
+        <div style="background:var(--bg);border-radius:10px;padding:10px"><div style="font-size:11px;color:var(--txt2)">${S.lang==='kz'?'Қалды':'Осталось'}</div><div style="font-size:15px;font-weight:800">${remStr}</div></div>
       </div>
-      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--txt2);margin-bottom:4px"><span>Выплачено ${progPct}%</span><span>Переплата: ${fmt(calc.overpay)}</span></div>
-      <div class="pg"><div class="pb" style="width:${progPct}%;background:${progPct<30?'var(--r)':progPct<60?'var(--a)':'var(--g)'}"></div></div>
-      ${c.type==='diff'?'<div style="font-size:11px;color:var(--txt2);margin-top:6px">* Первый платёж. Далее уменьшается ежемесячно.</div>':''}
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--txt2);margin-bottom:4px"><span>${t('paid_pct')} ${pct}%</span><span>${t('overpay_label')}: ${fmt(calc.overpay)}</span></div>
+      <div class="pg"><div class="pb" style="width:${pct}%;background:${pct<30?'var(--r)':pct<60?'var(--a)':'var(--g)'}"></div></div>
     </div>`;
   }).join('');
 }
 
-function renderStocks(){
+function rStocks(){
   const el=document.getElementById('inv-stock-list');
-  const colors={stocks:'var(--b)',bonds:'var(--g)',etf:'var(--a)',crypto:'var(--p)'};
-  const bgs={stocks:'var(--bb)',bonds:'var(--gb)',etf:'var(--ab)',crypto:'var(--pb)'};
+  if(!S.stocks.length){el.innerHTML=`<div class="empty">${t('no_assets')}</div>`;return;}
+  const typeBg={Акция:'var(--bb)',Облигация:'var(--gb)',ETF:'var(--ab)',Крипто:'var(--teal-light)'};
+  const typeIco={Акция:'📈',Облигация:'📋',ETF:'📊',Крипто:'🌐'};
   el.innerHTML=S.stocks.map(s=>{
     const cost=s.buyPrice*s.qty,mkt=s.marketPrice*s.qty,pnl=mkt-cost;
     const pnlPct=cost>0?((pnl/cost)*100).toFixed(1):0;
-    return `<div class="card2">
+    return `<div class="card" style="padding:14px;margin-bottom:10px">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-        <div class="ico" style="background:${bgs[s.type]||'var(--pb)'}">${s.icon}</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:15px;font-weight:700;color:var(--txt)">${s.name}</div>
-          <span class="inv-chip" style="background:${bgs[s.type]||'var(--pb)'};color:${colors[s.type]||'var(--p)'}">${typeLbls[s.type]||s.type}</span>
-        </div>
-        <div style="text-align:right">
-          <div style="font-size:16px;font-weight:700;color:${colors[s.type]||'var(--p)'}">${fmt(mkt)}</div>
-          <div style="font-size:12px;font-weight:600;color:${pnl>=0?'var(--g)':'var(--r)'}">${pnl>=0?'+':''}${fmt(pnl)} (${pnlPct}%)</div>
-        </div>
+        <div class="ico" style="background:${typeBg[s.where]||'var(--teal-light)'}">${typeIco[s.where]||'📊'}</div>
+        <div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:800;color:var(--teal)">${s.name}</div><div style="font-size:12px;color:var(--txt2)">${s.where}${s.ticker?' · '+s.ticker:''}</div></div>
+        <div style="text-align:right"><div style="font-size:16px;font-weight:800">${fmt(mkt)}</div><div style="font-size:12px;font-weight:700;color:${pnl>=0?'var(--gd)':'var(--r)'}">${pnl>=0?'+':''}${fmt(pnl)} (${pnlPct}%)</div></div>
       </div>
-      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--txt2);border-top:0.5px solid var(--brd);padding-top:8px">
-        <span>Куплено: ${fmt(cost)} (${s.qty} шт.)</span>
-        ${s.monthly>0?`<span style="color:var(--p);font-weight:600">Доход: +${fmt(s.monthly)}/мес</span>`:''}
+      <div style="font-size:12px;color:var(--txt2);border-top:1px solid var(--brd);padding-top:8px;display:flex;justify-content:space-between;align-items:center">
+        <span>${t('bought_label')}: ${(s.currency||'₸')==='₸'?fmt(cost):(s.buyPrice.toLocaleString('ru-RU')+' '+(s.currency||'₸')+' × '+s.qty)} ${S.lang==='kz'?'дана':'шт.'}</span>
+        <button class="edit-btn" onclick="openEditInvest(${s.id},'stocks')" style="flex-shrink:0">${t('edit_btn')}</button>
       </div>
+      ${s.comment?`<div style="font-size:12px;color:var(--txt2);margin-top:6px;padding-top:6px;border-top:1px solid var(--brd)">💬 ${s.comment}</div>`:''}
     </div>`;
   }).join('');
 }
 
-function renderCrowd(){
+function rCrowd(){
   const el=document.getElementById('inv-crowd-list');
+  if(!S.crowd.length){el.innerHTML=`<div class="empty">${t('no_projects')}</div>`;return;}
+  const stC={active:{bg:'var(--gb)',c:'var(--gd)'},pending:{bg:'var(--gyb)',c:'var(--gy)'},exit:{bg:'var(--bb)',c:'var(--b)'}};
   el.innerHTML=S.crowd.map(c=>{
-    const sc=stColors[c.status]||stColors.pending;
-    return `<div class="card2">
+    const sc=stC[c.status]||stC.pending;
+    const stL={active:t('status_active_l'),pending:t('status_pending_l'),exit:t('status_exit_l')};
+    return `<div class="card" style="padding:14px;margin-bottom:10px">
       <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px">
-        <div class="ico" style="background:var(--pb)">${c.icon}</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:15px;font-weight:700;color:var(--txt)">${c.name}</div>
-          <div style="display:flex;gap:6px;margin-top:3px;flex-wrap:wrap">
-            <span class="inv-chip" style="background:var(--pb);color:var(--p)">${typeLbls[c.type]||c.type}</span>
-            <span class="inv-chip" style="background:${sc.bg};color:${sc.c}">${{active:'Активный',pending:'Ожидание',exit:'Выход'}[c.status]}</span>
-          </div>
-        </div>
-        <div style="text-align:right">
-          <div style="font-size:16px;font-weight:700;color:var(--txt)">${fmt(c.amount)}</div>
-          ${c.monthly>0?`<div style="font-size:12px;color:var(--p);font-weight:600">+${fmt(c.monthly)}/мес</div>`:''}
-        </div>
+        <div class="ico" style="background:var(--teal-light)">🤝</div>
+        <div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:800;color:var(--teal)">${c.name}</div><div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap"><span class="pill" style="background:var(--teal-light);color:var(--teal);font-size:11px">${c.where}</span><span class="pill" style="background:${sc.bg};color:${sc.c};font-size:11px">${stL[c.status]||c.status}</span></div></div>
+        <div style="text-align:right"><div style="font-size:16px;font-weight:800">${fmt(c.buyPrice*(c.qty||1))}</div>${c.monthly>0?`<div style="font-size:12px;color:var(--teal);font-weight:700">+${fmt(c.monthly)}${t('per_month')}</div>`:''}</div>
       </div>
-      <div style="font-size:12px;color:var(--txt2);margin-bottom:4px">Прогресс: ${c.pct}%</div>
-      <div class="pg"><div class="pb" style="width:${c.pct}%;background:var(--p)"></div></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <div style="font-size:12px;color:var(--txt2)">${t('progress_label')}: ${c.pct||0}%</div>
+        <button class="edit-btn" onclick="openEditInvest(${c.id},'crowd')">${t('edit_btn')}</button>
+      </div>
+      <div class="pg"><div class="pb" style="width:${c.pct||0}%;background:var(--teal)"></div></div>
+      ${c.comment?`<div style="font-size:12px;color:var(--txt2);margin-top:8px">💬 ${c.comment}</div>`:''}
     </div>`;
   }).join('');
 }
 
-function renderExpCats(){
-  const el=document.getElementById('exp-cats');
-  const cats={};
-  S.entries.filter(e=>e.type==='exp').forEach(e=>{cats[e.cat]=(cats[e.cat]||0)+e.amount;});
-  const total=Object.values(cats).reduce((s,v)=>s+v,0)||1;
-  const sorted=Object.entries(cats).sort((a,b)=>b[1]-a[1]);
-  const barColors=['var(--r)','var(--a)','var(--p)','var(--b)','#1D9E75'];
-  el.innerHTML=sorted.map(([cat,amt],i)=>`<div class="card2">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-      <div style="display:flex;align-items:center;gap:8px"><span style="font-size:20px">${catIcons[cat]||'💰'}</span><div><div style="font-size:14px;font-weight:600;color:var(--txt)">${cat}</div></div></div>
-      <div style="text-align:right"><div style="font-size:15px;font-weight:700;color:var(--r)">${fmt(amt)}</div><div style="font-size:11px;color:var(--txt2)">${(amt/total*100).toFixed(1)}%</div></div>
-    </div>
-    <div class="pg"><div class="pb" style="width:${(amt/total*100).toFixed(0)}%;background:${barColors[i%barColors.length]}"></div></div>
-  </div>`).join('');
-}
-
-function renderExpHist(){
-  const el=document.getElementById('exp-hist');
-  const items=[...S.entries].filter(e=>e.type==='exp').sort((a,b)=>b.date.localeCompare(a.date)).slice(0,10);
-  el.innerHTML=items.map(e=>`<div class="txr"><div class="ico" style="background:var(--rb)">${e.icon||catIcons[e.cat]||'💰'}</div><div class="txi"><div class="txn">${e.name}</div><div class="txc">${dateStr(e.date)} · ${e.cat}</div></div><div class="txa" style="color:var(--r)">-${fmt(e.amount)}</div></div>`).join('');
-}
-
-function renderHistList(){
+function rHist(){
   const el=document.getElementById('hist-list');
-  let items=[...S.entries].sort((a,b)=>b.date.localeCompare(a.date));
+  let items=[...monthEntries(viewMonth)].sort((a,b)=>b.date.localeCompare(a.date));
   if(histFilter!=='all')items=items.filter(e=>e.type===histFilter);
-  if(!items.length){el.innerHTML='<div style="text-align:center;padding:40px 0;color:var(--txt2)">Нет записей</div>';return;}
-  el.innerHTML=items.map(e=>{
-    const bg=e.type==='inc'?'var(--gb)':e.type==='inv'?'var(--pb)':'var(--rb)';
-    const ac=e.type==='inc'?'var(--g)':e.type==='inv'?'var(--p)':'var(--r)';
-    const sg=e.type==='inc'||e.type==='inv'?'+':'-';
-    return `<div class="txr"><div class="ico" style="background:${bg}">${e.icon||catIcons[e.cat]||'💰'}</div><div class="txi"><div class="txn">${e.name}</div><div class="txc">${dateStr(e.date)} · ${e.cat||e.type}</div></div><div class="txa" style="color:${ac}">${sg}${fmt(e.amount)}</div></div>`;
-  }).join('');
+  if(!items.length){el.innerHTML=`<div class="empty">${t('no_items')}</div>`;return;}
+  // Group by date
+  const groups={};
+  items.forEach(e=>{if(!groups[e.date])groups[e.date]=[];groups[e.date].push(e);});
+  el.innerHTML=Object.entries(groups).sort((a,b)=>b[0].localeCompare(a[0])).map(([date,es])=>`
+    <div class="date-group-hdr">${dStr(date)}</div>
+    ${es.map(e=>{
+      const isI=e.type==='inc';
+      return `<div class="txr"><div class="ico" style="background:${isI?'var(--gb)':'var(--rb)'}">${e.icon||catIcon(e.cat)}</div><div class="txi"><div class="txn">${e.name}</div><div class="txc">${e.cat}</div></div><div class="txa" style="color:${isI?'var(--gd)':'var(--r)'}">${isI?'+':'-'}${fmt(e.amount)}</div></div>`;
+    }).join('')}`).join('');
 }
 
-// ── CHART ─────────────────────────────────────────────────────
-let chartInst=null;
-function renderChart(){
-  const canvas=document.getElementById('main-chart');
-  const ctx=canvas.getContext('2d');
-  const isDark=window.matchMedia('(prefers-color-scheme:dark)').matches;
-  const txtColor=isDark?'rgba(255,255,255,0.5)':'rgba(0,0,0,0.4)';
-  const gridColor=isDark?'rgba(255,255,255,0.07)':'rgba(0,0,0,0.06)';
-
-  let labels=[];
-  let expData=[];
-  let incData=[];
-  let crdData=[];
-
-  if(currentPeriod==='day'){
-    labels=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
-    expData=[8500,12000,6000,15000,9500,21000,7000];
-    incData=[0,0,0,0,80000,0,50000];
-    crdData=Array(7).fill(Math.round(totalCreditMonthly()/30));
-  }else if(currentPeriod==='week'){
-    labels=['1н','2н','3н','4н'];
-    expData=[45000,62000,55000,75000];
-    incData=[80000,0,50000,0];
-    crdData=Array(4).fill(Math.round(totalCreditMonthly()/4));
-  }else if(currentPeriod==='month'){
-    labels=monthsShort.slice(0,now.getMonth()+1).map(m=>m.slice(0,3));
-    const base=237500;
-    expData=labels.map((_,i)=>Math.round(base*(0.8+Math.random()*0.4)));
-    incData=labels.map(()=>Math.round(totalIncome()*(0.9+Math.random()*0.2)));
-    crdData=labels.map(()=>totalCreditMonthly());
-  }else{
-    labels=['2023','2024','2025','2026'];
-    expData=[2400000,2850000,3100000,Math.round(237500*4)];
-    incData=[4800000,5200000,5800000,Math.round(totalIncome()*4)];
-    crdData=[1200000,1150000,1180000,Math.round(totalCreditMonthly()*12)];
-  }
-
-  if(chartInst)chartInst.destroy();
-  canvas.height=180;
-  chartInst={
-    destroy:function(){},
-    _draw:function(){}
-  };
-
-  const W=canvas.offsetWidth||340;
-  canvas.width=W*window.devicePixelRatio;
-  canvas.height=180*window.devicePixelRatio;
-  canvas.style.width=W+'px';
-  canvas.style.height='180px';
-  ctx.scale(window.devicePixelRatio,window.devicePixelRatio);
-
-  const pad={l:44,r:16,t:16,b:32};
-  const cW=W-pad.l-pad.r;
-  const cH=180-pad.t-pad.b;
-  const allVals=[...expData,...incData,...crdData];
-  const maxV=Math.max(...allVals)||1;
-  const n=labels.length;
-  const barW=Math.max(4,Math.floor(cW/n*0.22));
-  const groupW=cW/n;
-
-  ctx.clearRect(0,0,W,180);
-
-  // grid
-  for(let i=0;i<=4;i++){
-    const y=pad.t+cH*(1-i/4);
-    ctx.strokeStyle=gridColor;ctx.lineWidth=0.5;
-    ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+cW,y);ctx.stroke();
-    ctx.fillStyle=txtColor;ctx.font='10px sans-serif';ctx.textAlign='right';
-    ctx.fillText(fmtShort(maxV*i/4).replace(' ₸',''),pad.l-4,y+3);
-  }
-
-  // bars
-  labels.forEach((lbl,i)=>{
-    const x=pad.l+groupW*i+groupW/2;
-    const drawBar=(val,offset,color)=>{
-      const h=Math.max(2,(val/maxV)*cH);
-      ctx.fillStyle=color;
-      const rx=3;
-      const bx=x+offset-barW/2,by=pad.t+cH-h;
-      ctx.beginPath();
-      ctx.moveTo(bx+rx,by);ctx.lineTo(bx+barW-rx,by);
-      ctx.quadraticCurveTo(bx+barW,by,bx+barW,by+rx);
-      ctx.lineTo(bx+barW,by+h);ctx.lineTo(bx,by+h);ctx.lineTo(bx,by+rx);
-      ctx.quadraticCurveTo(bx,by,bx+rx,by);
-      ctx.closePath();ctx.fill();
-    };
-    drawBar(incData[i],-barW-2,'rgba(59,109,17,0.75)');
-    drawBar(expData[i],0,'rgba(163,45,45,0.75)');
-    drawBar(crdData[i],barW+2,'rgba(133,79,11,0.75)');
-    ctx.fillStyle=txtColor;ctx.font='10px sans-serif';ctx.textAlign='center';
-    ctx.fillText(lbl,x,pad.t+cH+16);
-  });
-
-  // legend
-  const leg=[{c:'rgba(59,109,17,0.8)',l:'Доходы'},{c:'rgba(163,45,45,0.8)',l:'Расходы'},{c:'rgba(133,79,11,0.8)',l:'Кредиты'}];
-  let lx=pad.l;
-  leg.forEach(({c,l})=>{
-    ctx.fillStyle=c;ctx.fillRect(lx,2,10,8);
-    ctx.fillStyle=txtColor;ctx.font='10px sans-serif';ctx.textAlign='left';
-    ctx.fillText(l,lx+13,10);
-    lx+=ctx.measureText(l).width+26;
-  });
-}
-
-// ── PERIOD ────────────────────────────────────────────────────
-function setPeriod(p,btn){
-  currentPeriod=p;
-  document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  render();
-}
-function setHistFilter(f,btn){
-  histFilter=f;
-  document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  renderHistList();
-}
-
-// ── NAVIGATION ────────────────────────────────────────────────
+// ════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════
 function go(tab){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+tab).classList.add('active');
   document.getElementById('n-'+tab).classList.add('active');
-  if(tab==='home')renderChart();
+  if(tab==='history'){buildMonthBar();rHist();}
 }
+function setHF(f,btn){histFilter=f;document.querySelectorAll('.hfbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');rHist();}
+function setPeriod(btn){document.querySelectorAll('.prbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
 
-function openModal(id){
-  if(id==='m-sal')document.getElementById('sal-in').value=S.salary;
-  const d=document.getElementById('add-dt');if(d)d.value=new Date().toISOString().split('T')[0];
+// ════════════════════════════════════
+// MODALS
+// ════════════════════════════════════
+function openModal(id){if(id==='m-add-inc'||id==='m-ext')populateAccountSelects();
+  ['qa-dt','inc-dt','exp-dt','ext-dt'].forEach(fid=>{const el=document.getElementById(fid);if(el&&!el.value)el.value=todayStr();});
   document.getElementById(id).classList.add('open');
 }
-function closeModal(id){document.getElementById(id).classList.remove('open');}
-
-// ── TYPE SELECTORS ────────────────────────────────────────────
-function selType(btn,t){
-  S.addType=t;
-  document.querySelectorAll('#add-type-btns .tb').forEach(b=>b.className='tb');
-  btn.classList.add(t==='inc'?'ai':'ae');
+function closeModal(id){document.getElementById(id).classList.remove('open');resetForms();}
+function resetForms(){
+  document.getElementById('crd-preview').style.display='none';
+  document.getElementById('exp-edit-id').value='';
+  document.getElementById('crd-edit-id').value='';
+  const expT=document.getElementById('exp-modal-title');if(expT){expT.setAttribute('data-t','expense_title');expT.textContent=t('expense_title');}
+  const expS=document.getElementById('exp-save-btn');if(expS){expS.setAttribute('data-t','add_expense_btn');expS.textContent=t('add_expense_btn');}
+  const expD=document.getElementById('exp-del-btn');if(expD)expD.style.display='none';
+  const crdT=document.getElementById('crd-modal-title');if(crdT){crdT.setAttribute('data-t','new_credit');crdT.textContent=t('new_credit');}
+  const crdS=document.getElementById('crd-save-btn');if(crdS)crdS.textContent=t('add_credit_btn');
+  const crdD=document.getElementById('crd-del-btn');if(crdD)crdD.style.display='none';
 }
-function selInvType(btn,t){
-  S.invType=t;
-  document.querySelectorAll('#inv-type-btns .tb').forEach(b=>b.className='tb');
-  btn.classList.add('ap');
-}
-function selCrType(btn,t){
-  S.crType=t;
-  document.querySelectorAll('#cr-type-btns .tb').forEach(b=>b.className='tb');
-  btn.classList.add('ap');
-}
-function selCrSt(btn,t){
-  S.crSt=t;
-  document.querySelectorAll('#cr-st-btns .tb').forEach(b=>b.className='tb');
-  btn.classList.add('ai');
-}
-function selCrdType(btn,t){
-  S.crdType=t;
-  document.querySelectorAll('#crd-type-btns .tb').forEach(b=>b.className='tb');
-  btn.classList.add('ap');
-  calcCredit();
+function openSalModal(){populateAccountSelects();document.getElementById('sal-in').value=S.salary;document.getElementById('sal-account').value=S.salaryAccountId||'';openModal('m-sal');}
+function selTb(gid,btn,cls){document.querySelectorAll('#'+gid+' .tb').forEach(b=>b.className='tb');btn.classList.add(cls);}
+function toggleIncOther(){const v=document.getElementById('inc-cat').value;document.getElementById('inc-other-wrap').style.display=(v==='Басқа'||v==='Другое')?'block':'none';}
+function toggleExtOther(){const v=document.getElementById('ext-cat').value;document.getElementById('ext-other-wrap').style.display=(v==='Басқа'||v==='Другое')?'block':'none';}
+function openInvModal(mode){
+  document.getElementById('inv-mode').value=mode;
+  document.getElementById('inv-stocks-fields').style.display=mode==='stocks'?'block':'none';
+  document.getElementById('inv-crowd-fields').style.display=mode==='crowd'?'block':'none';
+  document.getElementById('inv-modal-title').textContent=mode==='stocks'?t('stock_assets'):t('crowd_title');
+  openModal('m-add-inv');
 }
 
-// ── SAVE ACTIONS ──────────────────────────────────────────────
-function saveAdd(){
-  const nm=document.getElementById('add-nm').value.trim()||'Операция';
-  const am=parseFloat(document.getElementById('add-am').value)||0;
-  const cat=document.getElementById('add-cat').value;
-  const dt=document.getElementById('add-dt').value||new Date().toISOString().split('T')[0];
-  const icon=catIcons[cat]||'💰';
-  S.entries.push({type:S.addType,name:nm,amount:am,date:dt,cat,icon});
-  if(S.addType==='inc')S.extra+=am;
+// Keyboard fix
+if(window.visualViewport){
+  window.visualViewport.addEventListener('resize',()=>{
+    const kb=window.innerHeight-window.visualViewport.height;
+    document.querySelectorAll('.overlay.open .sheet').forEach(sh=>{sh.style.marginBottom=kb>50?kb+'px':'0';});
+  });
+}
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o){o.classList.remove('open');resetForms();}}));
+
+// ════════════════════════════════════
+// SAVE ACTIONS
+// ════════════════════════════════════
+function addEntry(entry){
+  const mk=monthKey(entry.date);
+  ensureMonth(mk);
+  getMonth(DB,mk).entries.push(entry);
+}
+
+function saveQA(){
+  const nm=document.getElementById('qa-nm').value.trim()||'—';
+  const am=parseFloat(document.getElementById('qa-am').value)||0;
+  const dt=document.getElementById('qa-dt').value||todayStr();
+  const isI=S.qaType==='inc';
+  const entry={id:uid(),type:S.qaType,name:nm,amount:am,date:dt,cat:isI?'IT':'Басқа',icon:isI?'💵':'💰',comment:''};
+  addEntry(entry);
+  if(isI)S.extra+=am;
   render();closeModal('m-add');
-  document.getElementById('add-nm').value='';document.getElementById('add-am').value='';
+  document.getElementById('qa-nm').value='';document.getElementById('qa-am').value='';
 }
+
+function saveInc(){
+  const cat=document.getElementById('inc-cat').value;
+  const isOther=cat==='Басқа'||cat==='Другое';
+  const nm=isOther?(document.getElementById('inc-other-nm').value.trim()||cat):cat;
+  const am=parseFloat(document.getElementById('inc-am').value)||0;
+  const dt=document.getElementById('inc-dt').value||todayStr();
+  const comment=document.getElementById('inc-comment').value.trim();
+  const incAccId=document.getElementById('inc-account').value||'';
+  // Update account balance
+  const incAcc=S.accounts.find(a=>a.id==incAccId);if(incAcc)incAcc.balance=(incAcc.balance||0)+am;
+  addEntry({id:uid(),type:'inc',name:nm,amount:am,date:dt,cat,icon:catIcon(cat),comment,accountId:incAccId});
+  S.extra+=am;render();closeModal('m-add-inc');
+  document.getElementById('inc-am').value='';document.getElementById('inc-comment').value='';
+  document.getElementById('inc-other-nm').value='';document.getElementById('inc-other-wrap').style.display='none';
+}
+
+function editInc(id){
+  // find in current month and remove
+  const mk=currentMonthKey();const bucket=getMonth(DB,mk);
+  const e=bucket.entries.find(x=>x.id===id);if(!e)return;
+  bucket.entries=bucket.entries.filter(x=>x.id!==id);
+  S.extra=Math.max(0,S.extra-e.amount);render();
+}
+
+function saveExp(){
+  const editId=parseInt(document.getElementById('exp-edit-id').value)||0;
+  const cat=document.getElementById('exp-cat').value;
+  const nm=document.getElementById('exp-nm').value.trim()||cat;
+  const am=parseFloat(document.getElementById('exp-am').value)||0;
+  const dt=document.getElementById('exp-dt').value||todayStr();
+  const comment=document.getElementById('exp-comment').value.trim();
+  if(editId){
+    // search across all months
+    for(const mk of Object.keys(DB)){
+      const idx=DB[mk].entries.findIndex(x=>x.id===editId);
+      if(idx>=0){DB[mk].entries[idx]={id:editId,type:'exp',name:nm,amount:am,date:dt,cat,icon:catIcon(cat),comment};break;}
+    }
+  }else{
+    addEntry({id:uid(),type:'exp',name:nm,amount:am,date:dt,cat,icon:catIcon(cat),comment});
+  }
+  render();closeModal('m-add-exp');
+  document.getElementById('exp-nm').value='';document.getElementById('exp-am').value='';document.getElementById('exp-comment').value='';
+}
+
+function editExp(id){
+  let e=null;
+  for(const mk of Object.keys(DB)){e=DB[mk].entries.find(x=>x.id===id);if(e)break;}
+  if(!e)return;
+  document.getElementById('exp-edit-id').value=id;
+  document.getElementById('exp-cat').value=e.cat;
+  document.getElementById('exp-nm').value=e.name;
+  document.getElementById('exp-am').value=e.amount;
+  document.getElementById('exp-dt').value=e.date;
+  document.getElementById('exp-comment').value=e.comment||'';
+  document.getElementById('exp-modal-title').textContent=S.lang==='kz'?'Шығысты өзгерту':'Редактировать расход';
+  document.getElementById('exp-save-btn').textContent=t('save_btn');
+  document.getElementById('exp-del-btn').style.display='block';
+  openModal('m-add-exp');
+}
+
+function delExp(){
+  const id=parseInt(document.getElementById('exp-edit-id').value)||0;
+  if(id){for(const mk of Object.keys(DB)){const b=DB[mk];b.entries=b.entries.filter(x=>x.id!==id);}}
+  render();closeModal('m-add-exp');
+}
+
 function saveSal(){
   S.salary=parseFloat(document.getElementById('sal-in').value)||0;
-  render();closeModal('m-sal');
+  S.salaryAccountId=document.getElementById('sal-account').value||'';
+  const salAcc=S.accounts.find(a=>a.id==S.salaryAccountId);
+  if(salAcc)salAcc.balance=(salAcc.balance||0)+S.salary;
+  syncSalary();render();closeModal('m-sal');
 }
+
 function saveExt(){
-  const nm=document.getElementById('ext-nm').value.trim()||'Доп. доход';
+  const cat=document.getElementById('ext-cat').value;
+  const isOther=cat==='Басқа'||cat==='Другое';
+  const nm=isOther?(document.getElementById('ext-other-nm').value.trim()||cat):cat;
   const am=parseFloat(document.getElementById('ext-am').value)||0;
+  const dt=document.getElementById('ext-dt').value||todayStr();
+  const extAccId=document.getElementById('ext-account').value||'';
+  const extAcc=S.accounts.find(a=>a.id==extAccId);if(extAcc)extAcc.balance=(extAcc.balance||0)+am;
   S.extra+=am;
-  S.entries.push({type:'inc',name:nm,amount:am,date:new Date().toISOString().split('T')[0],cat:'Доход',icon:'💵'});
+  addEntry({id:uid(),type:'inc',name:nm,amount:am,date:dt,cat,icon:catIcon(cat),comment:'',accountId:extAccId});
   render();closeModal('m-ext');
-  document.getElementById('ext-nm').value='';document.getElementById('ext-am').value='';
+  document.getElementById('ext-am').value='';document.getElementById('ext-other-nm').value='';
+  document.getElementById('ext-other-wrap').style.display='none';
 }
+
 function saveCredit(){
-  const nm=document.getElementById('crd-nm').value.trim()||'Кредит';
+  const editId=parseInt(document.getElementById('crd-edit-id').value)||0;
+  const nm=document.getElementById('crd-nm').value.trim()||'—';
   const sum=parseFloat(document.getElementById('crd-sum').value)||0;
-  const rate=parseFloat(document.getElementById('crd-rate').value)||0;
+  const payment=parseFloat(document.getElementById('crd-payment').value)||0;
   const mo=parseFloat(document.getElementById('crd-months').value)||0;
   const paid=parseFloat(document.getElementById('crd-paid').value)||0;
-  S.credits.push({name:nm,bank:'',sum,rate,totalMonths:mo,paid,type:S.crdType,icon:'🏦'});
+  const rate=S._computedRate||0;
+  if(editId){const idx=S.credits.findIndex(x=>x.id===editId);if(idx>=0)S.credits[idx]={id:editId,name:nm,bank:'',sum,rate,payment,totalMonths:mo,paid,type:S.crdType};}
+  else S.credits.push({id:uid(),name:nm,bank:'',sum,rate,payment,totalMonths:mo,paid,type:S.crdType});
   render();closeModal('m-add-credit');
-  ['crd-nm','crd-sum','crd-rate','crd-months','crd-paid'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('crd-preview').style.display='none';
+  ['crd-nm','crd-sum','crd-payment','crd-months','crd-paid'].forEach(i=>document.getElementById(i).value='');
 }
-function saveStockInv(){
-  const nm=document.getElementById('inv-nm').value.trim()||'Актив';
-  const buy=parseFloat(document.getElementById('inv-buy').value)||0;
-  const qty=parseFloat(document.getElementById('inv-qty').value)||1;
-  const mkt=parseFloat(document.getElementById('inv-mkt').value)||buy;
-  const ret=parseFloat(document.getElementById('inv-ret').value)||0;
-  const ico=typeIcons[S.invType]||'📊';
-  S.stocks.push({name:nm,type:S.invType,buyPrice:buy,qty,marketPrice:mkt,monthly:ret,icon:ico});
-  if(ret>0)S.invReturns.push({id:Date.now(),src:nm,amount:ret,icon:ico,confirmed:false});
+
+function editCredit(id){
+  const c=S.credits.find(x=>x.id===id);if(!c)return;
+  document.getElementById('crd-edit-id').value=id;
+  document.getElementById('crd-nm').value=c.name;
+  document.getElementById('crd-sum').value=c.sum;
+  document.getElementById('crd-payment').value=c.payment||'';
+  document.getElementById('crd-months').value=c.totalMonths;
+  document.getElementById('crd-paid').value=c.paid;
+  S.crdType=c.type;
+  document.querySelectorAll('#crd-type-btns .tb').forEach((b,i)=>{b.className='tb';if((i===0&&c.type==='diff')||(i===1&&c.type==='ann'))b.classList.add('on-t');});
+  document.getElementById('crd-modal-title').textContent=t('edit_credit');
+  document.getElementById('crd-save-btn').textContent=t('save_credit_btn');
+  document.getElementById('crd-del-btn').style.display='block';
+  calcCredit();openModal('m-add-credit');
+}
+function delCredit(){const id=parseInt(document.getElementById('crd-edit-id').value)||0;if(id)S.credits=S.credits.filter(x=>x.id!==id);render();closeModal('m-add-credit');}
+
+function saveInv(){
+  const mode=document.getElementById('inv-mode').value;
+  if(mode==='stocks'){
+    const where=document.getElementById('inv-where').value,ticker=document.getElementById('inv-ticker').value.trim().toUpperCase(),currency=document.getElementById('inv-currency').value||'₸';
+    const nm=document.getElementById('inv-nm').value.trim()||where;
+    const buy=parseFloat(document.getElementById('inv-buy').value)||0,qty=parseFloat(document.getElementById('inv-qty').value)||1;
+    const mkt=buy,ret=0;
+    const comment=document.getElementById('inv-comment').value.trim();
+    const id=uid();
+    S.stocks.push({id,where,ticker,name:nm,buyPrice:buy,qty,marketPrice:mkt,monthly:ret,comment,currency});
+    if(ret>0)S.invReturns.push({id:uid(),src:nm,amount:ret,icon:'📊',confirmed:false});
+    ['inv-nm','inv-ticker','inv-buy','inv-qty','inv-comment'].forEach(fid=>{const el=document.getElementById(fid);if(el)el.value='';});
+  }else{
+    const where=document.getElementById('cr-where').value,nm=document.getElementById('cr-nm').value.trim().slice(0,70)||where;
+    const buy=parseFloat(document.getElementById('cr-buy').value)||0,qty=parseFloat(document.getElementById('cr-qty').value)||1;
+    const ret=parseFloat(document.getElementById('cr-ret').value)||0,prg=parseFloat(document.getElementById('cr-prg').value)||0;
+    const comment=document.getElementById('cr-comment').value.trim();
+    const id=uid();
+    S.crowd.push({id,where,name:nm,buyPrice:buy,qty,monthly:ret,pct:prg,status:S.crSt,comment});
+    if(ret>0)S.invReturns.push({id:uid(),src:nm,amount:ret,icon:'🤝',confirmed:false});
+    ['cr-nm','cr-buy','cr-qty','cr-ret','cr-prg','cr-comment'].forEach(fid=>{const el=document.getElementById(fid);if(el)el.value='';});
+  }
   render();closeModal('m-add-inv');
-  ['inv-nm','inv-buy','inv-qty','inv-mkt','inv-ret'].forEach(id=>document.getElementById(id).value='');
-}
-function saveCrowdInv(){
-  const nm=document.getElementById('cr-nm').value.trim()||'Проект';
-  const am=parseFloat(document.getElementById('cr-am').value)||0;
-  const ret=parseFloat(document.getElementById('cr-ret').value)||0;
-  const prg=parseFloat(document.getElementById('cr-prg').value)||0;
-  const ico=typeIcons[S.crType]||'🤝';
-  S.crowd.push({name:nm,type:S.crType,amount:am,monthly:ret,pct:prg,status:S.crSt,icon:ico});
-  if(ret>0)S.invReturns.push({id:Date.now(),src:nm,amount:ret,icon:ico,confirmed:false});
-  render();closeModal('m-add-crowd');
-  ['cr-nm','cr-am','cr-ret','cr-prg'].forEach(id=>document.getElementById(id).value='');
 }
 
-document.querySelectorAll('.mo-wrap').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
-window.addEventListener('resize',()=>{if(document.getElementById('tab-home').classList.contains('active'))renderChart();});
 
-render();
+// ════════════════════════════════════
+// ACCOUNTS
+// ════════════════════════════════════
+let accColor='#0e7a78';
+function selAccColor(btn,color){
+  accColor=color;document.getElementById('acc-color').value=color;
+  document.querySelectorAll('#acc-color-btns .tb').forEach(b=>b.style.outline='none');
+  btn.style.outline='3px solid #fff';btn.style.outlineOffset='-3px';
+}
+
+function populateAccountSelects(){
+  const opts='<option value="">— '+t('no_account')+' —</option>'+S.accounts.map(a=>`<option value="${a.id}">${a.icon} ${a.name} (${a.currency||'₸'})</option>`).join('');
+  ['inc-account','ext-account','sal-account','esal-account','einc-account'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.innerHTML=opts;
+  });
+}
+
+function rAccounts(){
+  const totEl=document.getElementById('acc-total');
+  const cntEl=document.getElementById('acc-count');
+  if(!totEl)return;
+  const el=document.getElementById('acc-list');
+  if(!S.accounts||!S.accounts.length){el.innerHTML=`<div class="empty">${t('no_items')}</div>`;if(totEl)totEl.textContent=fmt(0);if(cntEl)cntEl.textContent='0';return;}
+  const total=S.accounts.reduce((s,a)=>s+(a.balance||0),0);
+  document.getElementById('acc-total').textContent=fmt(total);
+  document.getElementById('acc-count').textContent=S.accounts.length;
+  const typeIco={card:'💳',cash:'💵',deposit:'🏦',other:'📦'};
+  el.innerHTML=S.accounts.map(a=>`
+    <div style="background:var(--card);border-radius:18px;margin-bottom:12px;overflow:hidden;box-shadow:0 2px 8px rgba(14,122,120,0.08);border:1px solid var(--brd)">
+      <div style="background:${a.color||'#0e7a78'};padding:18px 16px 14px;position:relative">
+        <div style="font-size:12px;color:rgba(255,255,255,0.75);margin-bottom:4px">${typeIco[a.type]||'💳'} ${t('acc_type_'+a.type)||a.type}</div>
+        <div style="font-size:20px;font-weight:800;color:#fff">${a.name}</div>
+        <div style="font-size:24px;font-weight:900;color:#fff;margin-top:8px">${(a.balance||0).toLocaleString('ru-RU')} ${a.currency||'₸'}</div>
+        <button onclick="editAccount(${a.id})" style="position:absolute;top:14px;right:14px;background:rgba(255,255,255,0.2);border:none;border-radius:20px;padding:5px 12px;color:#fff;font-size:12px;font-weight:700;cursor:pointer">${t('edit_btn')} ${t('change_label')}</button>
+      </div>
+      <div style="padding:12px 16px;display:flex;gap:16px">
+        <div><div style="font-size:11px;color:var(--txt2)">${t('income_label')}</div><div style="font-size:14px;font-weight:700;color:var(--gd)">+${fmt(accIncome(a.id))}</div></div>
+        <div><div style="font-size:11px;color:var(--txt2)">${t('expense_label')}</div><div style="font-size:14px;font-weight:700;color:var(--r)">-${fmt(accExpense(a.id))}</div></div>
+      </div>
+    </div>`).join('');
+}
+
+function accIncome(id){return curEntries().filter(e=>e.type==='inc'&&e.accountId==id).reduce((s,e)=>s+e.amount,0)+(S.salaryAccountId==id?S.salary:0);}
+function accExpense(id){return curEntries().filter(e=>e.type==='exp'&&e.accountId==id).reduce((s,e)=>s+e.amount,0);}
+
+function openAddAccount(){
+  accColor='#0e7a78';
+  document.getElementById('acc-edit-id').value='';
+  document.getElementById('acc-name').value='';
+  document.getElementById('acc-balance').value='';
+  document.getElementById('acc-del-btn').style.display='none';
+  document.getElementById('acc-modal-title').textContent=t('add_account_btn');
+  document.querySelectorAll('#acc-color-btns .tb').forEach((b,i)=>{b.style.outline=i===0?'3px solid #fff':'none';b.style.outlineOffset='-3px';});
+  openModal('m-add-account');
+}
+
+function editAccount(id){
+  const a=S.accounts.find(x=>x.id===id);if(!a)return;
+  accColor=a.color||'#0e7a78';
+  document.getElementById('acc-edit-id').value=id;
+  document.getElementById('acc-name').value=a.name;
+  document.getElementById('acc-type').value=a.type||'card';
+  document.getElementById('acc-currency').value=a.currency||'₸';
+  document.getElementById('acc-balance').value=a.balance||0;
+  document.getElementById('acc-color').value=a.color||'#0e7a78';
+  document.getElementById('acc-del-btn').style.display='block';
+  document.getElementById('acc-modal-title').textContent=t('change_label');
+  openModal('m-add-account');
+}
+
+function saveAccount(){
+  const editId=parseInt(document.getElementById('acc-edit-id').value)||0;
+  const name=document.getElementById('acc-name').value.trim()||'—';
+  const type=document.getElementById('acc-type').value;
+  const currency=document.getElementById('acc-currency').value;
+  const balance=parseFloat(document.getElementById('acc-balance').value)||0;
+  const color=document.getElementById('acc-color').value||accColor;
+  const icon={card:'💳',cash:'💵',deposit:'🏦',other:'📦'}[type]||'💳';
+  if(editId){
+    const idx=S.accounts.findIndex(x=>x.id===editId);
+    if(idx>=0)S.accounts[idx]={...S.accounts[idx],name,type,currency,balance,color,icon};
+  }else{
+    S.accounts.push({id:uid(),name,type,currency,balance,color,icon});
+  }
+  render();closeModal('m-add-account');
+}
+
+function delAccount(){
+  const id=parseInt(document.getElementById('acc-edit-id').value)||0;
+  if(id)S.accounts=S.accounts.filter(x=>x.id!==id);
+  render();closeModal('m-add-account');
+}
+
+// ════════════════════════════════════
+// EDIT SALARY entry
+// ════════════════════════════════════
+function openEditSalary(){
+  populateAccountSelects();
+  document.getElementById('esal-amount').value=S.salary;
+  document.getElementById('esal-account').value=S.salaryAccountId||'';
+  document.getElementById('esal-date').value=todayStr();
+  openModal('m-edit-sal-entry');
+}
+function saveSalEntry(){
+  S.salary=parseFloat(document.getElementById('esal-amount').value)||0;
+  S.salaryAccountId=document.getElementById('esal-account').value||'';
+  render();closeModal('m-edit-sal-entry');
+}
+
+// ════════════════════════════════════
+// EDIT INCOME entry (pencil)
+// ════════════════════════════════════
+function openEditIncEntry(id){
+  populateAccountSelects();
+  let e=null;
+  for(const mk of Object.keys(DB)){e=DB[mk].entries.find(x=>x.id===id);if(e)break;}
+  if(!e)return;
+  document.getElementById('einc-edit-id').value=id;
+  document.getElementById('einc-name').value=e.name;
+  document.getElementById('einc-amount').value=e.amount;
+  document.getElementById('einc-account').value=e.accountId||'';
+  document.getElementById('einc-date').value=e.date;
+  openModal('m-edit-inc-entry');
+}
+function saveIncEntry(){
+  const id=parseInt(document.getElementById('einc-edit-id').value)||0;
+  const nm=document.getElementById('einc-name').value.trim()||'—';
+  const am=parseFloat(document.getElementById('einc-amount').value)||0;
+  const accId=document.getElementById('einc-account').value||'';
+  const dt=document.getElementById('einc-date').value||todayStr();
+  for(const mk of Object.keys(DB)){
+    const idx=DB[mk].entries.findIndex(x=>x.id===id);
+    if(idx>=0){DB[mk].entries[idx]={...DB[mk].entries[idx],name:nm,amount:am,accountId:accId,date:dt};break;}
+  }
+  render();closeModal('m-edit-inc-entry');
+}
+function delIncEntry(){
+  const id=parseInt(document.getElementById('einc-edit-id').value)||0;
+  if(id){for(const mk of Object.keys(DB)){const b=DB[mk];b.entries=b.entries.filter(x=>x.id!==id);}}
+  render();closeModal('m-edit-inc-entry');
+}
+
+// ════════════════════════════════════
+// EDIT INVEST entry (pencil)
+// ════════════════════════════════════
+function openEditInvest(id,type){
+  let item=null;
+  if(type==='stocks')item=S.stocks.find(x=>x.id===id);
+  else item=S.crowd.find(x=>x.id===id);
+  if(!item)return;
+  document.getElementById('einv-edit-id').value=id;
+  document.getElementById('einv-edit-type').value=type;
+  document.getElementById('einv-name').value=item.name;
+  document.getElementById('einv-amount').value=item.buyPrice;
+  document.getElementById('einv-qty').value=item.qty||1;
+  document.getElementById('einv-comment').value=item.comment||'';
+  openModal('m-edit-invest');
+}
+function saveInvEntry(){
+  const id=parseInt(document.getElementById('einv-edit-id').value)||0;
+  const type=document.getElementById('einv-edit-type').value;
+  const nm=document.getElementById('einv-name').value.trim()||'—';
+  const am=parseFloat(document.getElementById('einv-amount').value)||0;
+  const qty=parseFloat(document.getElementById('einv-qty').value)||1;
+  const comment=document.getElementById('einv-comment').value.trim();
+  const arr=type==='stocks'?S.stocks:S.crowd;
+  const idx=arr.findIndex(x=>x.id===id);
+  if(idx>=0)arr[idx]={...arr[idx],name:nm,buyPrice:am,qty,comment};
+  render();closeModal('m-edit-invest');
+}
+function delInvEntry(){
+  const id=parseInt(document.getElementById('einv-edit-id').value)||0;
+  const type=document.getElementById('einv-edit-type').value;
+  if(type==='stocks')S.stocks=S.stocks.filter(x=>x.id!==id);
+  else S.crowd=S.crowd.filter(x=>x.id!==id);
+  render();closeModal('m-edit-invest');
+}
+
+// ════════════════════════════════════
+// LANG SWITCHER
+// ════════════════════════════════════
+function switchLang(lang){
+  S.lang=lang;
+  applyLang();
+  updateFlagUI();
+  render();
+  saveAll();
+}
+function updateFlagUI(){
+  const kz=document.getElementById('flag-kz');
+  const ru=document.getElementById('flag-ru');
+  if(!kz||!ru)return;
+  if(S.lang==='kz'){
+    kz.style.opacity='1';kz.style.filter='none';kz.style.transform='scale(1.15)';
+    ru.style.opacity='0.35';ru.style.filter='grayscale(60%)';ru.style.transform='scale(1)';
+  }else{
+    ru.style.opacity='1';ru.style.filter='none';ru.style.transform='scale(1.15)';
+    kz.style.opacity='0.35';kz.style.filter='grayscale(60%)';kz.style.transform='scale(1)';
+  }
+}
+
+// ════════════════════════════════════
+// INIT
+// ════════════════════════════════════
+if(S.lang){
+  selectedLang=S.lang;
+  document.getElementById('lang-screen').classList.add('hidden');
+  applyLang();render();updateFlagUI();
+}
 </script>
 </body>
 </html>
